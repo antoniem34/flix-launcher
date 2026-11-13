@@ -54,6 +54,20 @@ La apertura en Nuvio usa la ficha `kitsu:` y la URL del complemento, sin fabrica
 - En la TV: Ataque a los Titanes y My Hero Academia 2 muestran sinopsis generales en español. Sus enlaces abren las fichas correctas en Nuvio, incluida la segunda temporada de My Hero Academia (ID `kitsu:12268`, año 2017), tras seleccionar un perfil. La búsqueda «naruto» devuelve series y películas de Kitsu. Las puntuaciones llevan la etiqueta Kitsu.
 - Inicio regresa a Flix Latino desde Nuvio, con su servicio activo y sin aviso rojo. Buffer de crashes vacío. No se inició reproducción ni se probó un reinicio o el mando físico: la navegación se envió por ADB.
 
+## Pestaña Anime — latino4
+
+La versión `1.0.23-latino4` (código 27) sustituye la pestaña superior **Apps** por **Anime**, junto a Películas y Series. Muestra las filas habilitadas de Kitsu y un carrusel de anime, con películas y series de Kitsu. No incluye el Top 10 de películas ni la fila general Seguir viendo. Inicio conserva la vista conjunta; Películas y Series mantienen sus catálogos y dejan de mezclar los destacados de Kitsu. Todas las apps continúa disponible desde su acceso en la fila de favoritos.
+
+El filtro se aplica tanto al cambiar de pestaña como al recibir catálogos en segundo plano o reconstruir las filas. Cambiar de pestaña respeta la preferencia guardada de mostrar u ocultar la fila de aplicaciones. La opción existente `type_tabs`, ahora llamada **Pestañas de contenido**, controla Películas, Series y Anime sin modificar su valor guardado. Se conservan los estilos, las filas, su orden y las preferencias; no hay migración ni restablecimiento de datos.
+
+### Validación de latino4 — 13 de noviembre de 2026
+
+- Las nuevas pruebas detectaron tres fallos con el filtro anterior. Tras corregirlo, aprobaron las 17 pruebas JVM: cuatro del filtro, cinco de Kitsu, dos de búsqueda y seis de sinopsis.
+- APK release compilada con la misma firma e instalada sobre latino3 sin borrar datos. Lint conserva los 13 errores y 161 avisos anteriores; no hay errores nuevos ni se han ocultado los existentes.
+- En ONN Android 14 se recorrieron las cuatro filas de Anime, con sus sinopsis en español. Películas y Series muestran sus catálogos, Todas las apps abre Biblioteca y el regreso con Inicio funciona. Se conserva el diseño sin solapamientos y la fila adicional de apps permanece oculta según la preferencia guardada.
+- Los respaldos de las 11:31 y 11:45 conservan exactamente todas las preferencias, los favoritos, las imágenes de perfil y las siete filas con su orden. Solo cambia la marca interna `home_service_rebinding`.
+- Servicio Inicio activo, sin aviso rojo y buffer de crashes vacío. Navegación comprobada por ADB; no se repitieron reproducción, reinicio, mando físico ni los enlaces a Nuvio ya verificados en latino3.
+
 ## Compilación de prueba
 
 JDK 17, SDK Android 35 y el wrapper Gradle incluido. `local.properties` contiene solamente la ruta local del SDK y, si procede, las credenciales locales de firma; está excluido de Git.

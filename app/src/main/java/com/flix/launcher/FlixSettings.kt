@@ -87,7 +87,7 @@ object FlixSettings {
         "Thriller" to "Suspenso", "Horror" to "Terror", "Romance" to "Romance", "Sci-Fi" to "Ciencia ficción", "Animation" to "Animación",
         "Crime" to "Crimen", "Family" to "Familiar"), "all", summary = "Solo en filas cuyo complemento lo permita")
     val RATING_BADGE = toggle("rating_badge", "Calificación en pósteres", summary = "Desactívala si los pósteres ya muestran una calificación")
-    val TYPE_TABS = toggle("type_tabs", "Pestañas de películas y series", summary = "Inicio ya muestra ambas")
+    val TYPE_TABS = toggle("type_tabs", "Pestañas de contenido", summary = "Películas, Series y Anime; Inicio reúne todo")
     val POSTER_SIZE = Option("poster_size", "Tamaño del póster", listOf("small" to "Pequeño", "medium" to "Mediano", "large" to "Grande"), "medium")
     val BACKDROP = toggle("backdrop", "Fondo de la ficha", summary = "Muestra el arte del título seleccionado detrás de las filas")
     val TOP_TEN = Option("top_ten_from", "Fila de los 10 más populares",

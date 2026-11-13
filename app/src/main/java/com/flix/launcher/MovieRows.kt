@@ -100,6 +100,7 @@ class MovieRows(
             val row = makeRow(source, (w * dp).roundToInt(), (h * dp).roundToInt(), genre)
             rows += row
             container.addView(row.view)
+            row.view.visibility = View.GONE // Reveal only when its data matches the active tab.
             load(row, genre)
         }
     }
@@ -239,10 +240,10 @@ class MovieRows(
         detailed = null
     }
 
-    /** Shows only movie or only series rows (the Movies and Shows tabs), or all of them. */
+    /** Applies the active tab to current rows and to titles arriving asynchronously. */
     fun filter(type: String?) {
         rows.forEach { r ->
-            val match = type == null || r.source.type == type || r.source === CONTINUE
+            val match = BrowseFilter.row(type, r.source, r.source === CONTINUE)
             r.view.visibility = if (match && r.adapter.items.isNotEmpty()) View.VISIBLE else View.GONE
         }
         typeFilter = type
@@ -258,7 +259,7 @@ class MovieRows(
     private fun fillTop(row: Row, titles: List<Catalog.Title>) {
         val hidden = Catalog.hiddenTitles(activity)
         row.adapter.items = titles.filter { it.poster != null && it.id !in hidden }.distinctBy { it.id }.take(10)
-        val match = typeFilter == null || typeFilter == "movie"
+        val match = BrowseFilter.row(typeFilter, row.source)
         row.view.visibility = if (row.adapter.items.isEmpty() || !match) View.GONE else View.VISIBLE
     }
 
@@ -272,7 +273,7 @@ class MovieRows(
         val visible = titles.filter { it.id !in hidden }
         staged(row) {
             row.adapter.items = visible
-            val match = typeFilter == null || row.source.type == typeFilter || row.source === CONTINUE
+            val match = BrowseFilter.row(typeFilter, row.source, row.source === CONTINUE)
             row.view.visibility = if (row.adapter.items.isEmpty() || !match) View.GONE else View.VISIBLE
         }
     }

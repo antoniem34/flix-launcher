@@ -193,7 +193,7 @@ class Billboard(private val activity: Activity, parent: ViewGroup, private val o
         schedule()
     }
 
-    /** Limits the carousel to [type] ("movie", "series" or null for any), as the Movies and Shows tabs ask. */
+    /** Limits the carousel to the active content tab, including Kitsu movies and series for Anime. */
     fun feature(type: String?) {
         if (type == this.type && items.isNotEmpty()) return
         this.type = type
@@ -235,13 +235,13 @@ class Billboard(private val activity: Activity, parent: ViewGroup, private val o
 
     /** Best two per row, interleaved across rows (row1 #1, row2 #1, …, row1 #2, …), capped at [MAX]. */
     private fun rebuild() {
-        val perRow = rows.map { row -> row.filter { type == null || it.type == type }.sortedByDescending(::score).take(2) }
+        val perRow = rows.map { row -> row.filter { BrowseFilter.title(type, it) }.sortedByDescending(::score).take(2) }
         val picked = mutableListOf<Catalog.Title>()
         for (rank in 0 until 2) for (row in perRow) {
             val t = row.getOrNull(rank) ?: continue
             if (picked.size < MAX && picked.none { it.id == t.id }) picked += t
         }
-        resume?.takeIf { type == null || it.type == type }?.let { r -> picked.removeAll { it.id == r.id }; picked.add(0, r) }
+        resume?.takeIf { type != "anime" && BrowseFilter.title(type, it) }?.let { r -> picked.removeAll { it.id == r.id }; picked.add(0, r) }
         val current = featured
         items = picked
         if (picked.isEmpty()) { view.visibility = View.GONE; handler.removeCallbacks(tick); return }

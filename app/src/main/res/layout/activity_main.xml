@@ -245,14 +245,14 @@
                     style="@style/Flix.NavTab"
                     android:text="Series" />
                 <TextView
+                    android:id="@+id/nav_apps"
+                    style="@style/Flix.NavTab"
+                    android:text="Anime" />
+                <TextView
                     android:id="@+id/nav_tv"
                     style="@style/Flix.NavTab"
                     android:text="TV"
                     android:visibility="gone" />
-                <TextView
-                    android:id="@+id/nav_apps"
-                    style="@style/Flix.NavTab"
-                    android:text="Apps" />
 
             </LinearLayout>
 

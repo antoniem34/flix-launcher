@@ -140,7 +140,7 @@ class MainActivity : Activity() {
         val rows = findViewById<ViewGroup>(R.id.movie_rows)
         CoachMarks.show(this, listOfNotNull(
             CoachMarks.Mark(findViewById(R.id.favorites), "Tus aplicaciones", "Las que elegiste. Mantén OK sobre una app para moverla o quitarla."),
-            CoachMarks.Mark(findViewById(R.id.nav_tabs), if (LiveTv.available(this)) "Películas, series, TV y apps" else "Películas, series y apps",
+            CoachMarks.Mark(findViewById(R.id.nav_tabs), if (LiveTv.available(this)) "Películas, series, anime y TV" else "Películas, series y anime",
                 if (LiveTv.available(this)) "Elige qué ver. TV muestra tus canales en vivo mientras navegas."
                 else "Elige qué ver. La búsqueda está a la izquierda."),
             CoachMarks.Mark(findViewById(R.id.qs_flix), "Ajustes de Flix", "Cambia tus fondos, temas, filas y aplicaciones cuando quieras."),
@@ -388,7 +388,7 @@ class MainActivity : Activity() {
         player?.shuffle = isOn(FlixSettings.SHUFFLE)
         hero.backdropEnabled = isOn(FlixSettings.BACKDROP)
         val typeTabs = if (isOn(FlixSettings.TYPE_TABS)) View.VISIBLE else View.GONE
-        listOf(R.id.nav_movies, R.id.nav_shows).forEach { id ->
+        listOf(R.id.nav_movies, R.id.nav_shows, R.id.nav_apps).forEach { id ->
             val tab = findViewById<View>(id)
             if (typeTabs == View.GONE && tab.isSelected) selectHomeTab()
             tab.visibility = typeTabs
@@ -423,7 +423,7 @@ class MainActivity : Activity() {
     /** Where a focused movie row's title sits on screen: just under the top menu, as on Netflix. */
     private fun heroLine() = header.height + (4 * resources.displayMetrics.density).toInt()
 
-    // ---- Top menu: Search · Home · Movies · Shows · Apps ----
+    // ---- Top menu: Search · Home · Movies · Shows · Anime · optional Live TV ----
 
     private lateinit var tabs: List<View>
     private lateinit var livePage: LiveTvPage
@@ -434,9 +434,9 @@ class MainActivity : Activity() {
         val home = findViewById<View>(R.id.nav_home)
         val movies = findViewById<View>(R.id.nav_movies)
         val shows = findViewById<View>(R.id.nav_shows)
-        val apps = findViewById<View>(R.id.nav_apps)
+        val anime = findViewById<View>(R.id.nav_apps) // Keep the existing view ID; replaces the Apps tab.
         val tv = findViewById<View>(R.id.nav_tv)
-        tabs = listOf(home, movies, shows, tv, apps)
+        tabs = listOf(home, movies, shows, anime, tv)
         livePage = LiveTvPage(this, findViewById(R.id.hero_trailer))
         livePage.onPlaying = { playing ->
             livePlaying = playing
@@ -445,28 +445,30 @@ class MainActivity : Activity() {
         findViewById<ViewGroup>(R.id.rows_content).let { c -> c.addView(livePage.view, c.indexOfChild(findViewById(R.id.movie_rows)) + 1) }
         fun select(tab: View, type: String?) {
             tabs.forEach { it.isSelected = it === tab }
-            showAppsGrid(tab === apps)
+            showAppsGrid(false)
             val onTv = tab === tv
             if (onTv) findViewById<View>(R.id.movie_rows).visibility = View.GONE
-            else if (tab !== apps) { findViewById<View>(R.id.movie_rows).visibility = View.VISIBLE; movieRows.filter(type) }
+            else { findViewById<View>(R.id.movie_rows).visibility = View.VISIBLE; movieRows.filter(type) }
             livePage.show(onTv)
             // The TV tab has the screen to itself: no apps dock, and no empty space where it
             // was either, so the channel and its rows start right under the top bar.
             (favoritesBlock as ViewGroup).let { block ->
-                for (i in 0 until block.childCount) block.getChildAt(i).visibility = if (onTv) View.GONE else View.VISIBLE
+                for (i in 0 until block.childCount) {
+                    val child = block.getChildAt(i)
+                    val appList = child.id == R.id.apps || child.id == R.id.all_apps_label
+                    child.visibility = if (onTv || appList && !isOn(FlixSettings.ALL_APPS)) View.GONE else View.VISIBLE
+                }
             }
         }
         select(home, null)
         selectHomeTab = { if (!home.isSelected) select(home, null) }
         // Like Netflix, landing on a tab switches to it; no need to press OK. A short pause
         // first, so sliding across tabs doesn't rebuild the rows for each one passed.
-        listOf(home to null, movies to "movie", shows to "series", tv to null, apps to null).forEach { (tab, type) ->
+        listOf(home to null, movies to "movie", shows to "series", anime to "anime", tv to null).forEach { (tab, type) ->
             val pick = Runnable { if (tab.isFocused && !tab.isSelected) select(tab, type) }
             tab.setOnClickListener { select(tab, type) }
             tab.setOnFocusChangeListener { _, has -> main.removeCallbacks(pick); if (has) main.postDelayed(pick, 300) }
         }
-        // OK on Apps goes straight into the grid.
-        apps.setOnClickListener { select(apps, null); appsGrid.post { appsGrid.getChildAt(0)?.requestFocus() } }
         findViewById<View>(R.id.nav_profile).setOnClickListener { switchProfile() }
         // Holding OK on Search asks by voice instead of the keyboard.
         findViewById<View>(R.id.nav_search).setOnLongClickListener {
