@@ -37,10 +37,18 @@ object Catalog {
         val minutesLeft: Int? = null,
         /** A provider-supplied mapping for the Spanish overview, never the playback identity. */
         val imdbId: String? = null,
+        /** Exact episode identity supplied by Nuvio progress or the provider's video list. */
+        val videoId: String? = null,
     ) {
         val isKitsu get() = id.matches(Regex("kitsu:[0-9]+"))
         val synopsisId get() = if (isKitsu) imdbId else id
         val ratingLabel get() = if (isKitsu) "Kitsu" else "IMDb"
+        val streamVideoId: String? get() = videoId ?: when {
+            isKitsu -> null
+            type == "movie" -> id
+            id.matches(Regex("tt[0-9]+")) && season != null && episode != null -> "$id:$season:$episode"
+            else -> null
+        }
 
         /**
          * Opens Nuvio straight on the title's list of streams, the way Nuvio's own Google TV
@@ -49,15 +57,10 @@ object Catalog {
          * versions without that screen are opened with [nuvioUri] instead.
          */
         fun nuvioStreamIntent(): android.content.Intent {
-            // Kitsu seasons have their own episode numbering. Let the addon's detail page
-            // supply it instead of constructing an IMDb-style season/episode stream ID.
-            if (isKitsu) return android.content.Intent(android.content.Intent.ACTION_VIEW,
+            // Custom providers (including Kitsu and AnimES) supply their own episode IDs.
+            // Catalogue cards without an exact episode still open the detail page.
+            if (streamVideoId == null) return android.content.Intent(android.content.Intent.ACTION_VIEW,
                 android.net.Uri.parse(nuvioUri)).setPackage(MainActivity.NUVIO)
-            val videoId = when {
-                type == "movie" -> id
-                season != null && episode != null -> "$id:$season:$episode"
-                else -> null
-            }
             return android.content.Intent(android.content.Intent.ACTION_VIEW)
                 .setClassName(MainActivity.NUVIO, "com.nuvio.tv.MainActivity")
                 .putExtra("launchMode", "stream")
@@ -65,7 +68,7 @@ object Catalog {
                 .putExtra("contentType", type)
                 .putExtra("name", name)
                 .apply {
-                    videoId?.let { putExtra("videoId", it) }
+                    putExtra("videoId", streamVideoId)
                     poster?.let { putExtra("poster", it) }
                     backdrop?.let { putExtra("backdrop", it) }
                     logo?.let { putExtra("logo", it) }

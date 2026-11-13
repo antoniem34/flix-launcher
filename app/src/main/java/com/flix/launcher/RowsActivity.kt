@@ -471,7 +471,7 @@ class RowsActivity : Activity() {
 
     /** Lists every catalogue from the Nuvio profile's addons, so any of them can be switched on here. */
     private fun syncNuvio() {
-        if (!NuvioAccount.isSignedIn(this)) return
+        if (!NuvioAccount.isSignedIn(this) || !NuvioAccount.backend(this).isCloud) return
         Thread {
             val added = runCatching { Addons.syncFromNuvio(this) }.getOrDefault(0)
             if (added > 0) runOnUiThread { if (!isFinishing && !isDestroyed) { render(); changed() } }

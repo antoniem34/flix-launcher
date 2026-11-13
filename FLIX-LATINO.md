@@ -87,6 +87,27 @@ Referencias del proveedor: [manifiesto](https://anime-kitsu.strem.fun/manifest.j
 - Los respaldos de las 11:52 y 12:02 conservan exactamente los ajustes, favoritos, imágenes de perfil y las siete filas anteriores con su orden. Solo cambian la lista de filas (siete añadidas al final) y la marca interna del servicio Inicio.
 - Servicio Inicio activo, buffer de crashes vacío y TV dejada en Anime. Navegación por ADB; no se repitieron reproducción, reinicio ni pruebas con mando físico.
 
+## Servidor local de Nuvio — latino6
+
+«Seguir viendo» consulta los proveedores del perfil seleccionado para recuperar los títulos, carátulas y descripciones de identificadores propios como AnimES y Donghua. No importa sus catálogos ni cambia las filas de Inicio. La caché de metadatos distingue servidor, sesión, perfil y proveedores.
+
+Al abrir un episodio se conserva el `video_id` exacto del historial, incluido Kitsu, AnimES y Pluto. Para «A continuación» se obtiene el identificador del episodio siguiente de la lista de videos del proveedor. Cuando falta un identificador válido de un proveedor personalizado, se abre la ficha en lugar de fabricar un ID de reproducción. La preferencia de sinopsis se conserva; los proveedores con IDs propios mantienen su descripción original.
+
+La versión `1.0.23-latino6` (código 29) permite elegir **Servidor local** o **Nuvio en la nube** en Ajustes → Películas y series → Nuvio. Para un servidor propio se introduce su dirección base; Flix comprueba `/.well-known/nuvio`, la identidad del servicio, su dirección anunciada y los métodos de acceso disponibles. Usa la clave pública anunciada, sin pedir claves administrativas. Se conserva el acceso por QR/código y por correo/contraseña cuando el servidor los admite.
+
+Las sesiones cifradas, perfiles elegidos y cachés de Seguir viendo quedan separadas por servidor. La nube conserva su archivo de sesión anterior. Las peticiones iniciadas quedan vinculadas a su servidor y los resultados atrasados de otro perfil se descartan. Las credenciales locales no se envían al servicio externo Nuvio+IPTV. La autenticación no sigue redirecciones HTTP hacia otro destino.
+
+La conexión local usa los perfiles y el progreso existentes, sin fusionarlos ni importar complementos automáticamente. Las filas, favoritos y ajustes de Flix se conservan. El selector de perfil de la cabecera cambia el historial que muestra el launcher; abrir un título sigue delegando la reproducción a Nuvio. Los respaldos de ajustes no contienen tokens de acceso.
+
+Referencia: [configuración oficial de clientes Nuvio](https://github.com/NuvioMedia/self-host/blob/main/docs/client-configuration.md). Para QR, la página `/tv-login` del servidor debe estar disponible y usar el mismo backend.
+
+### Validación de latino6 — 13 de noviembre de 2026
+
+- 32 pruebas JVM aprobadas. Los casos de regresión reproducen la falta de proveedores del perfil y la pérdida del ID exacto del episodio; también cubren descubrimiento, separación de servidor y rechazo de direcciones ambiguas.
+- Release compilada, firma conservada e instalada por actualización. Lint sigue sin aprobar: los mismos 13 errores preexistentes y 164 avisos (tres avisos nuevos `SetTextI18n` en la interfaz de conexión, consistente con los literales del proyecto).
+- Autenticación local por código aprobada por el usuario y conservada tras actualizar la APK. En ONN, Inicio muestra nombres de Frieren, Angolmois, KonoSuba, Mago cuerpo a cuerpo, Psyren y A Record Mortal's Journey To Immortality en lugar de sus identificadores técnicos.
+- La comprobación interactiva de apertura de episodios, cambio de perfiles y respaldo posterior está pendiente de dejar libre la TV. No se ha confirmado reproducción.
+
 ## Compilación de prueba
 
 JDK 17, SDK Android 35 y el wrapper Gradle incluido. `local.properties` contiene solamente la ruta local del SDK y, si procede, las credenciales locales de firma; está excluido de Git.

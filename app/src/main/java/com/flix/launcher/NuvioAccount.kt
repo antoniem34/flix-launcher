@@ -1,6 +1,7 @@
 package com.flix.launcher
 
 import android.content.Context
+import android.content.ContextWrapper
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
@@ -28,17 +29,48 @@ import javax.crypto.spec.GCMParameterSpec
  * Everything here runs on background threads.
  */
 object NuvioAccount {
-    data class Login(val code: String, val webUrl: String, val nonce: String, val pollSeconds: Int, val expiresAtMs: Long)
+    data class Login(val code: String, val webUrl: String, val nonce: String, val pollSeconds: Int, val expiresAtMs: Long, val backend: NuvioBackend)
     data class Profile(val index: Int, val name: String, val color: Int = 0xFF4F7CFF.toInt())
 
-    private const val API = "https://api.nuvio.tv"
     private const val CONFIG_URL = "https://nuvio.tv/config.js"
     private const val CINEMETA = "https://v3-cinemeta.strem.io"
 
     /** A reply from Nuvio with an HTTP error status, so callers can tell "rejected" from "offline". */
     class HttpError(val code: Int, message: String) : IllegalStateException(message)
 
-    private fun prefs(context: Context) = context.getSharedPreferences("nuvio_account", Context.MODE_PRIVATE)
+    private class ScopedContext(base: Context, val backend: NuvioBackend) : ContextWrapper(base)
+    private fun connection(context: Context) = context.getSharedPreferences("nuvio_connection", Context.MODE_PRIVATE)
+    fun backend(context: Context): NuvioBackend = (context as? ScopedContext)?.backend ?: runCatching {
+        NuvioBackend.from(connection(context).getString("selected", NuvioBackend.CLOUD_URL)!!)
+    }.getOrDefault(NuvioBackend.CLOUD)
+    private fun scope(context: Context, server: NuvioBackend = backend(context)): Context =
+        if (context is ScopedContext && context.backend == server) context else ScopedContext(context.applicationContext, server)
+    private fun prefs(context: Context) = context.getSharedPreferences(backend(context).preferenceName, Context.MODE_PRIVATE)
+    fun serverLabel(context: Context) = backend(context).let { if (it.isCloud) "Nuvio en la nube" else it.url }
+    fun lastLocalServer(context: Context) = connection(context).getString("last_local", "").orEmpty()
+    fun supportsTvLogin(context: Context) = backend(context).isCloud || prefs(context).getBoolean("tv_login", true)
+    fun supportsPasswordLogin(context: Context) = backend(context).isCloud || prefs(context).getBoolean("password_login", true)
+
+    /** Public discovery only; does not sign in or change the selected connection. */
+    fun discoverServer(url: String): NuvioBackend.Discovery {
+        val requested = NuvioBackend.from(url)
+        require(!requested.isCloud) { "Para la nube, usa la opción Nuvio en la nube" }
+        return NuvioBackend.discover(requested, send("${requested.url}/.well-known/nuvio", null, null, null))
+    }
+
+    fun selectServer(context: Context, discovery: NuvioBackend.Discovery?) {
+        val server = discovery?.backend ?: NuvioBackend.CLOUD
+        discovery?.let {
+            prefs(scope(context, server)).edit().putString("anon_key", it.key)
+                .putBoolean("tv_login", it.tvLogin).putBoolean("password_login", it.passwordLogin).apply()
+        }
+        connection(context).edit().putString("selected", server.url).apply {
+            if (!server.isCloud) putString("last_local", server.url)
+        }.apply()
+    }
+
+    /** Snapshot used to discard results belonging to a previous server, account or profile. */
+    fun selectionKey(context: Context): String = "${backend(context).url}|${isSignedIn(context)}|${prefs(context).getString("session_id", "legacy")}|${profile(context)?.index}"
 
     // Cheap check (no decryption) so the UI thread can call it; a token that later fails
     // to decrypt signs the user out, after which this turns false.
@@ -52,18 +84,26 @@ object NuvioAccount {
         prefs(context).edit().putInt("profile_index", profile.index).putString("profile_name", profile.name).putInt("profile_color", profile.color).apply()
 
     fun signOut(context: Context) {
+        val context = scope(context)
         // Keeps the public anon key: it isn't tied to the account and saves a fetch next sign-in.
         val anon = prefs(context).getString("anon_key", null)
-        prefs(context).edit().clear().apply { anon?.let { putString("anon_key", it) } }.apply()
-        context.cacheDir.listFiles()?.filter { it.name.startsWith("continue_") }?.forEach { it.delete() }
+        val tv = supportsTvLogin(context)
+        val password = supportsPasswordLogin(context)
+        prefs(context).edit().clear().apply { anon?.let { putString("anon_key", it) } }
+            .putBoolean("tv_login", tv).putBoolean("password_login", password).apply()
+        val server = backend(context)
+        context.cacheDir.listFiles()?.filter { it.name.startsWith(server.cachePrefix) &&
+            (!server.isCloud || !it.name.startsWith("continue_local_")) }?.forEach { it.delete() }
     }
 
     // ---- Continue watching, kept on the TV so the row shows at once on a cold start ----
 
-    private fun continueFile(context: Context, profile: Profile) = File(context.cacheDir, "continue_${profile.index}.json")
+    private fun continueFile(context: Context, profile: Profile) = File(context.cacheDir,
+        "${backend(context).cachePrefix}${prefs(context).getString("session_id", null)?.let { "${it}_" }.orEmpty()}${profile.index}.json")
 
     /** The row as it was last loaded for the chosen profile; empty if never loaded. */
     fun cachedContinue(context: Context): List<Catalog.Title> = runCatching {
+        val context = scope(context)
         val profile = profile(context) ?: return emptyList()
         val file = continueFile(context, profile)
         if (!file.exists()) return emptyList()
@@ -81,6 +121,8 @@ object NuvioAccount {
                 progress = if (o.has("progress")) o.getDouble("progress").toFloat() else null,
                 episodeLabel = str("episodeLabel"), season = int("season"), episode = int("episode"),
                 minutesLeft = int("minutesLeft"),
+                imdbId = str("imdbId"),
+                videoId = str("videoId"),
             )
         }
     }.getOrDefault(emptyList())
@@ -92,6 +134,8 @@ object NuvioAccount {
             put("poster", t.poster); put("backdrop", t.backdrop); put("logo", t.logo); put("year", t.year)
             put("rating", t.rating); put("runtime", t.runtime); put("genres", JSONArray(t.genres))
             put("description", t.description); put("addonBase", t.addonBase)
+            put("imdbId", t.imdbId)
+            put("videoId", t.videoId)
             t.progress?.let { put("progress", it.toDouble()) }
             put("episodeLabel", t.episodeLabel); put("season", t.season); put("episode", t.episode); put("minutesLeft", t.minutesLeft)
         })
@@ -101,27 +145,34 @@ object NuvioAccount {
     // ---- Sign-in by code ----
 
     fun startLogin(context: Context): Login {
+        val context = scope(context)
         val nonce = ByteArray(16).also { SecureRandom().nextBytes(it) }.joinToString("") { "%02x".format(it) }
         val rows = JSONArray(rpc(context, "start_tv_login_session", JSONObject()
             .put("p_device_nonce", nonce)
-            .put("p_redirect_base_url", "https://nuvio.tv/tv-login")
+            .put("p_redirect_base_url", backend(context).loginUrl)
             .put("p_device_name", "Flix Latino en ${android.os.Build.MODEL}"), anonymous = true))
         val row = rows.getJSONObject(0)
         val expires = runCatching {
             java.time.OffsetDateTime.parse(row.getString("expires_at")).toInstant().toEpochMilli()
         }.getOrDefault(System.currentTimeMillis() + 5 * 60_000)
-        return Login(row.getString("code"), row.getString("web_url"), nonce, row.optInt("poll_interval_seconds", 3), expires)
+        val webUrl = row.getString("web_url")
+        val expected = java.net.URI(backend(context).loginUrl)
+        val actual = java.net.URI(webUrl)
+        require(actual.scheme == expected.scheme && actual.authority == expected.authority) { "Nuvio devolvió una página de acceso de otro servidor" }
+        return Login(row.getString("code"), webUrl, nonce, row.optInt("poll_interval_seconds", 3).coerceAtLeast(1), expires, backend(context))
     }
 
     /** Signs in with the email and password the user typed on the TV; they go straight to Nuvio and aren't kept. */
     fun passwordLogin(context: Context, email: String, password: String) {
-        val body = request(context, "$API/auth/v1/token?grant_type=password",
+        val context = scope(context)
+        val body = request(context, "${backend(context).url}/auth/v1/token?grant_type=password",
             JSONObject().put("email", email.trim()).put("password", password).toString(), anonBearer = true)
-        saveSession(context, JSONObject(body))
+        saveSession(context, JSONObject(body), newSession = true)
     }
 
     /** "pending", "approved", "expired"… */
     fun poll(context: Context, login: Login): String {
+        val context = scope(context, login.backend)
         val rows = JSONArray(rpc(context, "poll_tv_login_session",
             JSONObject().put("p_code", login.code).put("p_device_nonce", login.nonce), anonymous = true))
         return rows.optJSONObject(0)?.optString("status") ?: "pending"
@@ -129,12 +180,14 @@ object NuvioAccount {
 
     /** Swaps an approved code for a session and keeps only its tokens. */
     fun finishLogin(context: Context, login: Login) {
-        val body = request(context, "$API/functions/v1/tv-logins-exchange",
+        val context = scope(context, login.backend)
+        val body = request(context, "${backend(context).url}/functions/v1/tv-logins-exchange",
             JSONObject().put("code", login.code).put("device_nonce", login.nonce).toString(), anonBearer = true)
-        saveSession(context, JSONObject(body).let { it.optJSONObject("session") ?: it })
+        saveSession(context, JSONObject(body).let { it.optJSONObject("session") ?: it }, newSession = true)
     }
 
     fun profiles(context: Context): List<Profile> {
+        val context = scope(context)
         val rows = JSONArray(rpc(context, "sync_pull_profiles", JSONObject()))
         return (0 until rows.length()).map { rows.getJSONObject(it) }
             .map {
@@ -151,10 +204,15 @@ object NuvioAccount {
      * order, switched-off ones left out. Nuvio keeps them in its "addons" table.
      */
     fun addonUrls(context: Context): List<String> {
+        val context = scope(context)
         val profile = profile(context) ?: return emptyList()
+        return addonUrls(context, profile)
+    }
+
+    private fun addonUrls(context: Context, profile: Profile): List<String> {
         val token = accessToken(context)
         val user = userId(token)?.let { "&user_id=eq.$it" }.orEmpty()
-        val body = request(context, "$API/rest/v1/addons?select=url,enabled,sort_order&profile_id=eq.${profile.index}$user&order=sort_order.asc",
+        val body = request(context, "${backend(context).url}/rest/v1/addons?select=url,enabled,sort_order&profile_id=eq.${profile.index}$user&order=sort_order.asc",
             null, bearer = token)
         val rows = JSONArray(body)
         return (0 until rows.length()).map { rows.getJSONObject(it) }
@@ -174,12 +232,18 @@ object NuvioAccount {
 
     /** Unfinished titles for the chosen profile, newest first, with artwork from Cinemeta. */
     fun continueWatching(context: Context): List<Catalog.Title> {
+        val context = scope(context)
+        val selection = selectionKey(context)
         val profile = profile(context) ?: return emptyList()
-        return loadContinue(context, profile).also { saveContinue(context, profile, it) }
+        return loadContinue(context, profile).also { if (selectionKey(context) == selection) saveContinue(context, profile, it) }
     }
 
     private fun loadContinue(context: Context, profile: Profile): List<Catalog.Title> {
         val rows = JSONArray(rpc(context, "sync_pull_watch_progress", JSONObject().put("p_profile_id", profile.index)))
+        // Use this profile's metadata providers without importing their catalogue rows.
+        // Read once per refresh, not once for every title in the row.
+        val bases = metadataBases(runCatching { addonUrls(context, profile) }.getOrDefault(emptyList()), Addons.rows(context))
+        val cacheScope = "${backend(context).url}|${prefs(context).getString("session_id", "legacy")}|${profile.index}|${bases.joinToString("|")}"
         val latest = LinkedHashMap<String, JSONObject>()
         for (i in 0 until rows.length()) {
             val r = rows.getJSONObject(i)
@@ -225,7 +289,7 @@ object NuvioAccount {
                 // is capped so one slow addon can't hold the row for minutes: titles not found
                 // in time just show their id and get their artwork on the next refresh.
                 val deadline = System.currentTimeMillis() + META_BUDGET_MS
-                val futures = picked.map { r -> metaPool.submit<Pair<JSONObject, String?>?> { meta(context, r.optString("content_type", "movie"), r.getString("content_id")) } }
+                val futures = picked.map { r -> metaPool.submit<Pair<JSONObject, String?>?> { meta(context, r.optString("content_type", "movie"), r.getString("content_id"), bases, cacheScope) } }
                 val metas = futures.map { f ->
                     val left = deadline - System.currentTimeMillis()
                     runCatching { f.get(maxOf(left, 1), TimeUnit.MILLISECONDS) }
@@ -243,7 +307,8 @@ object NuvioAccount {
                 var progress = position.toFloat() / duration
                 var season = r.optInt("season", 0)
                 var episode = r.optInt("episode", 0)
-                if (progress >= FINISHED) {
+                val finished = progress >= FINISHED
+                if (finished) {
                     // Finished this episode: offer the next released one, or drop the show.
                     val (s, e) = nextEpisode(meta, season, episode) ?: return@mapNotNull null
                     season = s; episode = e; progress = 0f
@@ -268,6 +333,8 @@ object NuvioAccount {
                     season = season.takeIf { type == "series" && it > 0 },
                     episode = episode.takeIf { type == "series" && season > 0 },
                     addonBase = base,
+                    imdbId = meta.optString("imdb_id").takeIf { it.matches(Regex("tt[0-9]+")) },
+                    videoId = progressVideoId(r, meta, season, episode, finished),
                 )
             }
     }
@@ -275,6 +342,14 @@ object NuvioAccount {
     private const val META_BUDGET_MS = 20_000L
     // Nuvio's own threshold for a finished title.
     private const val FINISHED = 0.90f
+
+    internal fun progressVideoId(row: JSONObject, meta: JSONObject, season: Int, episode: Int, finished: Boolean): String? {
+        if (!finished) return row.optString("video_id").takeIf { it.isNotBlank() && it != "null" }
+        val videos = meta.optJSONArray("videos") ?: return null
+        return (0 until videos.length()).mapNotNull { videos.optJSONObject(it) }
+            .firstOrNull { it.optInt("season", -1) == season && it.optInt("episode", it.optInt("number", -1)) == episode }
+            ?.optString("id")?.takeIf { it.isNotBlank() && it != "null" }
+    }
 
     /** watched_at may be epoch seconds, milliseconds or an ISO date. */
     private fun watchedAtMs(v: Any?): Long = when (v) {
@@ -307,14 +382,18 @@ object NuvioAccount {
     /** One small shared pool for title lookups; its threads exit when idle so they cost nothing between refreshes. */
     private val metaPool = ThreadPoolExecutor(3, 3, 30, TimeUnit.SECONDS, LinkedBlockingQueue()).apply { allowCoreThreadTimeOut(true) }
 
+    internal fun metadataBases(profileUrls: List<String>, rows: List<Addons.Row>): List<String> =
+        (profileUrls.map { it.removeSuffix("/manifest.json").trimEnd('/') } + rows.map { it.base })
+            .filter { (it.startsWith("https://") || it.startsWith("http://")) && it != CINEMETA }.distinct()
+
     /**
      * Title details and the addon they came from, cached on disk for a week. Titles no
      * addon knows are remembered for a day, so they aren't asked about on every refresh. IMDb ids
      * come from Cinemeta; other ids (e.g. IndiaStreamz's) are asked of the user's own
      * addons in turn, and that addon is remembered so Nuvio can open the title.
      */
-    private fun meta(context: Context, type: String, id: String): Pair<JSONObject, String?>? {
-        val file = File(context.cacheDir, "meta_${Catalog.hashName("$type|$id")}.json")
+    private fun meta(context: Context, type: String, id: String, profileBases: List<String>, cacheScope: String): Pair<JSONObject, String?>? {
+        val file = File(context.cacheDir, "meta_${Catalog.hashName("$cacheScope|$type|$id")}.json")
         val age = System.currentTimeMillis() - file.lastModified()
         if (file.exists() && age < 7 * 24 * 3600_000L) {
             runCatching {
@@ -324,7 +403,7 @@ object NuvioAccount {
             }
         }
         val bases = if (id.startsWith("tt")) listOf(CINEMETA)
-        else Addons.rows(context).map { it.base }.distinct().filter { it != CINEMETA && !it.startsWith("nuvio:") }
+        else profileBases
         for (base in bases) {
             val found = runCatching {
                 val body = request(context, "$base/meta/$type/${java.net.URLEncoder.encode(id, "UTF-8")}.json", null, bearer = null, apikey = false)
@@ -344,14 +423,17 @@ object NuvioAccount {
     // ---- Plumbing ----
 
     private fun rpc(context: Context, name: String, body: JSONObject, anonymous: Boolean = false): String =
-        if (anonymous) request(context, "$API/rest/v1/rpc/$name", body.toString(), anonBearer = true)
-        else request(context, "$API/rest/v1/rpc/$name", body.toString(), bearer = accessToken(context))
+        if (anonymous) request(context, "${backend(context).url}/rest/v1/rpc/$name", body.toString(), anonBearer = true)
+        else request(context, "${backend(context).url}/rest/v1/rpc/$name", body.toString(), bearer = accessToken(context))
 
     /**
      * The Live TV setup Nuvio+IPTV saves with "Setup Sync" (playlists, favourites, hidden
      * groups), read with this Nuvio sign-in. Null when Sync is off or nothing is saved.
      */
     fun liveTvSetup(context: Context): JSONObject? = runCatching {
+        val context = scope(context)
+        // This external service only accepts cloud accounts. Never send a local token to it.
+        if (!backend(context).isCloud) return null
         val body = request(context, "https://livetv-cloud.nuvioplusiptv.workers.dev/v1/setup", null, bearer = accessToken(context))
         JSONObject(body).optJSONObject("data")?.also { data ->
             // Kept (encrypted, like the sign-in tokens) so the TV tab opens straight away next
@@ -379,7 +461,7 @@ object NuvioAccount {
         if (token != null && System.currentTimeMillis() / 1000 < p.getLong("expires_at", 0) - 60) return token
         val refresh = readToken(context, "refresh_token") ?: throw IllegalStateException("No has iniciado sesión en Nuvio")
         val body = try {
-            request(context, "$API/auth/v1/token?grant_type=refresh_token",
+            request(context, "${backend(context).url}/auth/v1/token?grant_type=refresh_token",
                 JSONObject().put("refresh_token", refresh).toString(), anonBearer = true)
         } catch (e: HttpError) {
             // Nuvio rejected the refresh token (revoked, expired, already used): the session is
@@ -392,7 +474,7 @@ object NuvioAccount {
         return readToken(context, "access_token") ?: throw IllegalStateException("No has iniciado sesión en Nuvio")
     }
 
-    private fun saveSession(context: Context, session: JSONObject) {
+    private fun saveSession(context: Context, session: JSONObject, newSession: Boolean = false) {
         val access = session.getString("access_token")
         val expiresAt = session.optLong("expires_at").takeIf { it > 0 }
             ?: (System.currentTimeMillis() / 1000 + session.optLong("expires_in", 3600))
@@ -402,6 +484,7 @@ object NuvioAccount {
             .remove("access_token")
             .remove("refresh_token")
             .putLong("expires_at", expiresAt)
+            .apply { if (newSession) putString("session_id", java.util.UUID.randomUUID().toString()) }
             .commit()
     }
 
@@ -455,6 +538,11 @@ object NuvioAccount {
     private fun anonKey(context: Context): String {
         val p = prefs(context)
         p.getString("anon_key", null)?.let { return it }
+        if (!backend(context).isCloud) {
+            val found = discoverServer(backend(context).url)
+            p.edit().putString("anon_key", found.key).apply()
+            return found.key
+        }
         val js = request(context, CONFIG_URL, null, bearer = null, apikey = false)
         val key = Regex("supabaseAnonKey[\"']?\\s*[:=]\\s*[\"']([^\"']+)").find(js)?.groupValues?.get(1)
             ?: throw IllegalStateException("No se pudo obtener la configuración de acceso de Nuvio")
@@ -484,6 +572,7 @@ object NuvioAccount {
         val conn = URL(url).openConnection() as HttpURLConnection
         conn.connectTimeout = 8000
         conn.readTimeout = 15000
+        conn.instanceFollowRedirects = false
         conn.setRequestProperty("Accept", "application/json")
         apikey?.let { conn.setRequestProperty("apikey", it) }
         bearer?.let { conn.setRequestProperty("Authorization", "Bearer $it") }

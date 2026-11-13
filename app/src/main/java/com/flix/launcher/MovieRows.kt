@@ -134,11 +134,12 @@ class MovieRows(
         val row = rows.firstOrNull { it.source === CONTINUE } ?: return
         if (!force && System.currentTimeMillis() - lastContinueAt < 120_000) return
         lastContinueAt = System.currentTimeMillis()
+        val selection = NuvioAccount.selectionKey(activity)
         net.execute {
             val titles = runCatching { NuvioAccount.continueWatching(activity) }
                 .onFailure { android.util.Log.w("Flix", "Continue watching failed", it) }
                 .getOrNull() ?: return@execute
-            main.post { if (row in rows) show(row, titles) }
+            main.post { if (row in rows && NuvioAccount.selectionKey(activity) == selection) show(row, titles) }
         }
     }
 

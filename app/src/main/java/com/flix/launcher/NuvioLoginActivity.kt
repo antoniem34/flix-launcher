@@ -63,7 +63,7 @@ class NuvioLoginActivity : Activity() {
         setContentView(panel)
         panel.alpha = 0f
         panel.animate().alpha(1f).setDuration(260).setInterpolator(DecelerateInterpolator()).start()
-        if (NuvioAccount.isSignedIn(this)) showAccount() else showQr()
+        if (NuvioAccount.isSignedIn(this)) showAccount() else showServers()
     }
 
     /** Blurs the home screen behind where the TV supports it, and dims it otherwise. */
@@ -110,10 +110,66 @@ class NuvioLoginActivity : Activity() {
         return generation
     }
 
+    private fun showServers() {
+        screen("Conectar con Nuvio", "Elige dónde está tu cuenta. Tus ajustes de Flix se conservan.")
+        val local = button("Servidor local", R.drawable.ic_o_layers, "Usa tu propia instalación de Nuvio") { showLocalServer() }
+        val cloud = button("Nuvio en la nube", R.drawable.ic_o_user, "Cuenta de nuvio.tv") {
+            NuvioAccount.selectServer(this, null); changed(); openConnection()
+        }
+        body.addView(caption("Conexión"))
+        body.addView(group(listOf(local, cloud)), LinearLayout.LayoutParams(px(FORM_DP), ViewGroup.LayoutParams.WRAP_CONTENT))
+        local.post { local.requestFocus() }
+    }
+
+    private fun openConnection() {
+        when {
+            NuvioAccount.isSignedIn(this) -> showAccount()
+            NuvioAccount.supportsTvLogin(this) -> showQr()
+            else -> showPassword()
+        }
+    }
+
+    /** Keep both actions visible at TV height without squeezing the QR or form. */
+    private fun connectionActions(other: View?): View = LinearLayout(this).apply {
+        orientation = LinearLayout.HORIZONTAL
+        other?.let { addView(group(listOf(it)), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = px(8) }) }
+        addView(group(listOf(button("Cambiar servidor", R.drawable.ic_o_layers) { showServers() })),
+            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+    }
+
+    private fun showLocalServer() {
+        val gen = screen("Servidor local de Nuvio", "Introduce la misma dirección que utilizas en Nuvio.")
+        val address = field("http://192.168…:puerto", InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI)
+        address.setText(NuvioAccount.lastLocalServer(this))
+        val status = text("", 13f).apply { setTextColor(0xFFF87171.toInt()) }
+        body.addView(address, LinearLayout.LayoutParams(px(FORM_DP), px(52)).apply { topMargin = px(28) })
+        body.addView(status, LinearLayout.LayoutParams(px(FORM_DP), ViewGroup.LayoutParams.WRAP_CONTENT))
+        lateinit var connect: View
+        connect = primary("Comprobar y conectar") {
+            val url = address.text.toString()
+            connect.isEnabled = false
+            status.text = "Comprobando servidor…"
+            thread {
+                val result = runCatching { NuvioAccount.discoverServer(url) }
+                runOnUiThread {
+                    if (gen != generation) return@runOnUiThread
+                    connect.isEnabled = true
+                    result.onSuccess {
+                        NuvioAccount.selectServer(this, it); changed(); openConnection()
+                    }.onFailure { status.text = it.message ?: "No se pudo conectar con el servidor" }
+                }
+            }
+        }
+        body.addView(connect, LinearLayout.LayoutParams(px(FORM_DP), px(50)).apply { topMargin = px(14) })
+        body.addView(group(listOf(button("Volver a conexiones", R.drawable.ic_o_user) { showServers() })),
+            LinearLayout.LayoutParams(px(FORM_DP), ViewGroup.LayoutParams.WRAP_CONTENT).apply { topMargin = px(20) })
+        address.post { address.requestFocus() }
+    }
+
     // ---- Way 1: QR, renews itself ----
 
     private fun showQr() {
-        val gen = screen("Iniciar sesión en Nuvio", "Escanea el código con tu teléfono y pulsa Aprobar")
+        val gen = screen("Iniciar sesión en Nuvio", NuvioAccount.serverLabel(this))
         val qr = ImageView(this).apply {
             background = GradientDrawable().apply { cornerRadius = 18 * dp; setColor(Color.WHITE) }
             setPadding(px(14), px(14), px(14), px(14))
@@ -132,7 +188,7 @@ class NuvioLoginActivity : Activity() {
             addView(caption("Cómo funciona"))
             addView(steps())
             addView(View(context), LinearLayout.LayoutParams(1, 0, 1f))
-            addView(group(listOf(other)))
+            addView(connectionActions(other.takeIf { NuvioAccount.supportsPasswordLogin(this@NuvioLoginActivity) }))
         }
         body.addView(LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -157,7 +213,7 @@ class NuvioLoginActivity : Activity() {
                         val renewIn = (l.expiresAtMs - System.currentTimeMillis() - 20_000).coerceAtLeast(30_000)
                         main.postDelayed({ if (gen == generation) { qr.animate().alpha(0.15f).setDuration(200).start(); spinner.visibility = View.VISIBLE; fetch() } }, renewIn)
                     }.onFailure {
-                        status.text = "No se puede conectar con Nuvio. Reintentando…"
+                        status.text = "No se puede conectar con Nuvio: ${it.message ?: "sin respuesta"}. Reintentando…"
                         main.postDelayed({ if (gen == generation) fetch() }, 4000)
                     }
                 }
@@ -218,7 +274,7 @@ class NuvioLoginActivity : Activity() {
     // ---- Way 2: email and password on the TV ----
 
     private fun showPassword() {
-        screen("Iniciar sesión en Nuvio", "Tu contraseña se envía directamente a Nuvio y no se guarda")
+        screen("Iniciar sesión en Nuvio", NuvioAccount.serverLabel(this))
         val email = field("Correo electrónico", InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS)
         val password = field("Contraseña", InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD)
         val error = text("", 13f).apply { setTextColor(0xFFF87171.toInt()) }
@@ -249,7 +305,8 @@ class NuvioLoginActivity : Activity() {
         password.setOnEditorActionListener { _, action, _ -> if (action == EditorInfo.IME_ACTION_DONE) { go(); true } else false }
         body.addView(submit, LinearLayout.LayoutParams(px(FORM_DP), px(50)).apply { topMargin = px(14) })
         body.addView(View(this), LinearLayout.LayoutParams(1, 0, 1f))
-        body.addView(group(listOf(button("Usar mi teléfono", R.drawable.ic_o_phone) { showQr() })), LinearLayout.LayoutParams(px(FORM_DP), ViewGroup.LayoutParams.WRAP_CONTENT))
+        body.addView(connectionActions(if (NuvioAccount.supportsTvLogin(this)) button("Usar mi teléfono", R.drawable.ic_o_phone) { showQr() } else null),
+            LinearLayout.LayoutParams(px(FORM_DP), ViewGroup.LayoutParams.WRAP_CONTENT))
         email.post { email.requestFocus() }
     }
 
@@ -302,7 +359,7 @@ class NuvioLoginActivity : Activity() {
         NuvioAccount.setProfile(this, p)
         changed()
         // Bring in the catalogues of this profile's Nuvio addons (switched off) to pick from in Addons & rows.
-        Thread { if (runCatching { Addons.syncFromNuvio(applicationContext) }.getOrDefault(0) > 0) runOnUiThread { changed() } }.start()
+        if (NuvioAccount.backend(this).isCloud) Thread { if (runCatching { Addons.syncFromNuvio(applicationContext) }.getOrDefault(0) > 0) runOnUiThread { changed() } }.start()
         success(p.name)
     }
 
@@ -322,7 +379,7 @@ class NuvioLoginActivity : Activity() {
 
     private fun showAccount() {
         val profile = NuvioAccount.profile(this)
-        screen("Nuvio", "Conectado · Seguir viendo de “${profile?.name ?: "?"}”")
+        screen("Nuvio", "${NuvioAccount.serverLabel(this)} · Perfil: ${profile?.name ?: "sin elegir"}")
         val change = button("Cambiar perfil", R.drawable.ic_o_user, "Elige el perfil de Seguir viendo") {
             val gen = generation
             thread {
@@ -334,7 +391,8 @@ class NuvioLoginActivity : Activity() {
             NuvioAccount.signOut(this); changed(); finish()
         }
         body.addView(caption("Cuenta"))
-        body.addView(group(listOf(change, out)), LinearLayout.LayoutParams(px(FORM_DP), ViewGroup.LayoutParams.WRAP_CONTENT))
+        val server = button("Cambiar servidor", R.drawable.ic_o_layers, "Conserva la sesión de cada servidor") { showServers() }
+        body.addView(group(listOf(change, server, out)), LinearLayout.LayoutParams(px(FORM_DP), ViewGroup.LayoutParams.WRAP_CONTENT))
         change.post { change.requestFocus() }
     }
 

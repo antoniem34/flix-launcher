@@ -202,6 +202,7 @@ class Billboard(private val activity: Activity, parent: ViewGroup, private val o
     /** Forgets every row so the next load builds a fresh carousel. */
     fun reset() {
         handler.removeCallbacks(tick)
+        resume = null // A rebuilt page may belong to another Nuvio account or profile.
         rows.clear()
         items = emptyList()
         index = 0

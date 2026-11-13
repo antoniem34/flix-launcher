@@ -815,7 +815,7 @@ class SettingsActivity : Activity() {
         return heroRow(
             art = art,
             title = "Nuvio",
-            subtitle = if (signedIn) "Seguir viendo de “${profile ?: "?"}”" else "Inicia sesión para mostrar Seguir viendo",
+            subtitle = if (signedIn) "Seguir viendo de “${profile ?: "?"}” · ${if (NuvioAccount.backend(this).isCloud) "Nube" else "Servidor local"}" else "Conecta tu cuenta local o de la nube para mostrar Seguir viendo",
             badge = if (signedIn) "Conectado" else "Iniciar sesión",
             badgeColor = if (signedIn) 0xFF16A34A.toInt() else RED,
         ) { open(NuvioLoginActivity::class.java) }

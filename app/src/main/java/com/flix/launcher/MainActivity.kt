@@ -415,6 +415,7 @@ class MainActivity : Activity() {
             FlixSettings.GENRE, FlixSettings.POSTER_SIZE, FlixSettings.MOTION, FlixSettings.RATING_BADGE).map { FlixSettings.get(this, it) },
         Addons.rows(this),
         NuvioAccount.isSignedIn(this),
+        NuvioAccount.selectionKey(this),
         packageManager.getLaunchIntentForPackage(findNuvio(packageManager)) != null,
     )
 
@@ -551,11 +552,12 @@ class MainActivity : Activity() {
     }
 
     private fun switchProfile() {
+        val selection = NuvioAccount.selectionKey(this)
         val current = NuvioAccount.profile(this)
         Thread {
             val profiles = runCatching { NuvioAccount.profiles(this) }.getOrNull()
             main.post {
-                if (isFinishing) return@post
+                if (isFinishing || NuvioAccount.selectionKey(this) != selection) return@post
                 if (profiles.isNullOrEmpty()) { Toast.makeText(this, "No se pudo conectar con Nuvio", Toast.LENGTH_SHORT).show(); return@post }
                 WhosWatching.show(this, profiles, current) { p ->
                     if (p.index != current?.index) {
