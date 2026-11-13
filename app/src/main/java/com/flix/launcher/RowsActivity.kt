@@ -183,7 +183,7 @@ class RowsActivity : Activity() {
     }
 
     private fun rowView(row: Addons.Row, position: Int?, count: Int): View {
-        val kind = when (row.type) { "series" -> "Series"; "movie" -> "Películas"; else -> row.type }
+        val kind = when (row.type) { "series" -> "Series"; "anime" -> "Anime"; "movie" -> "Películas"; else -> row.type }
         // Rows on the home screen show their place in the tile; the others show a row icon.
         val tileBg = GradientDrawable().apply { cornerRadius = 11 * dp; setColor(0x14FFFFFF) }
         val tile = FrameLayout(this).apply {

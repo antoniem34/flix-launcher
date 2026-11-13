@@ -160,7 +160,7 @@ class PhoneRemote(private val context: Context, private val onChanged: () -> Uni
         val items = rows.mapIndexed { i, r ->
             """
             <li class="${if (r.enabled) "" else "off"}">
-              <div><b>${esc(r.displayTitle)}</b><small>${esc(r.addonName)} · ${esc(when (r.type) { "movie" -> "Películas"; "series" -> "Series"; else -> r.type })}</small></div>
+              <div><b>${esc(r.displayTitle)}</b><small>${esc(r.addonName)} · ${esc(when (r.type) { "movie" -> "Películas"; "series" -> "Series"; "anime" -> "Anime"; else -> r.type })}</small></div>
               <nav>
                 <form method="post" action="/move">$t<input type="hidden" name="i" value="$i"><button name="d" value="-1">▲</button><button name="d" value="1">▼</button></form>
                 <form method="post" action="/toggle">$t<input type="hidden" name="i" value="$i"><button>${if (r.enabled) "Ocultar" else "Mostrar"}</button></form>

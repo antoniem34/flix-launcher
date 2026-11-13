@@ -42,6 +42,10 @@ internal object SpanishText {
     }
 
     fun catalog(value: String): String = when (value) {
+        "Kitsu Trending" -> "Anime en tendencia"
+        "Kitsu Top Airing" -> "Anime en emisión"
+        "Kitsu Most Popular" -> "Anime más popular"
+        "Kitsu Highest Rated" -> "Anime mejor valorado"
         "Popular movies" -> "Películas populares"
         "Popular series" -> "Series populares"
         "Featured movies" -> "Películas destacadas"

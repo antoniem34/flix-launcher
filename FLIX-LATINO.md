@@ -8,7 +8,7 @@ En **Ajustes → Películas y series → Idioma de las sinopsis** se puede elegi
 
 Los destacados y las fichas de películas/series solicitan únicamente la descripción en `es-MX` a [TMDB Addon](https://github.com/mrcanelas/tmdb-addon), alojado en `https://tmdb.elfhosted.com`. Se envían el tipo y el identificador público IMDb/TMDB; no se envían credenciales ni direcciones de addons. La calidad y disponibilidad de la traducción dependen del proveedor, que puede devolver su propio idioma de respaldo.
 
-La consulta se hace después de detener la navegación, en segundo plano. Las respuestas tardías no sustituyen la descripción de otra ficha. La caché dura siete días; si falla la red se conserva la traducción anterior o el texto original y se espera quince minutos antes de reintentar esa ficha. Los identificadores propios de otros addons mantienen su descripción original. Las respuestas de metadatos reutilizan los límites y escrituras atómicas del proyecto.
+La consulta se hace después de detener la navegación, en segundo plano. Las respuestas tardías no sustituyen la descripción de otra ficha. La caché dura siete días; si falla la red se conserva la traducción anterior o el texto original y se espera quince minutos antes de reintentar esa ficha. Los identificadores propios de otros addons mantienen su descripción original, excepto el tratamiento de Kitsu descrito abajo. Las respuestas de metadatos reutilizan los límites y escrituras atómicas del proyecto.
 
 No se alteran títulos, imágenes, orden de catálogos, identificadores, enlaces a Nuvio, audio ni subtítulos. No se requiere una clave API personal ni una cuenta nueva.
 
@@ -37,6 +37,22 @@ La actualización se instala sobre la misma aplicación, con la misma firma y si
 - Lint completo sigue sin aprobar: los mismos 13 errores de latino1 y 161 avisos. El aviso adicional `SetTextI18n` señala un texto de TV en vivo traducido con el mismo estilo de literales que utiliza el proyecto; no se migró toda la interfaz a recursos Android ni se ocultaron hallazgos.
 - `assembleRelease` completado y firma comprobada. Actualización instalada con `adb install -r` en ONN Android 14, sin desinstalar ni borrar datos.
 - Se revisaron Inicio, ajustes, biblioteca, menú de una app y complementos sin solapamientos. La búsqueda encuentra «peliculas» sin acento y «complementos». El botón Inicio regresó desde Ajustes de Android a Flix Latino, con el servicio activo y sin aviso rojo. El buffer de crashes consultado quedó vacío. No se probaron un reinicio, el mando físico ni reproducción.
+
+## Anime Kitsu — latino3
+
+La versión `1.0.23-latino3` (código 26) admite las fichas de [Anime Kitsu](https://github.com/TheBeastLT/stremio-kitsu-anime). Se agrega en **Ajustes → Películas y series → Complementos y filas → Agregar complemento por URL** con `https://anime-kitsu.strem.fun/manifest.json`. Sus cuatro filas se muestran en Inicio y se pueden ordenar o desactivar desde el mismo panel: Anime en tendencia, Anime en emisión, Anime más popular y Anime mejor valorado. El catálogo también participa en la búsqueda existente. No se sustituye el catálogo de películas/series ni se cambian ajustes de apariencia.
+
+Cada ficha conserva su ID `kitsu:` aunque el proveedor incluya un IMDb compartido con otras temporadas. IMDb solo se utiliza como equivalencia explícita para consultar la sinopsis `es-MX`; no se hacen coincidencias aproximadas por nombre. En series, la descripción se identifica como **Sinopsis general de la serie**, porque no es una traducción específica de cada temporada de Kitsu. Si no existe equivalencia o la consulta falla sin caché, se muestra **Sinopsis en español latino no disponible para este anime**. La opción **Original del catálogo** sigue mostrando el texto original. No se garantiza cobertura total ni la variante regional de cada texto suministrado por el proveedor.
+
+La apertura en Nuvio usa la ficha `kitsu:` y la URL del complemento, sin fabricar números de temporada/episodio de IMDb. Kitsu aporta catálogo y metadatos; las fuentes de reproducción se configuran en Nuvio. Las puntuaciones aportadas por Kitsu llevan su etiqueta en lugar de atribuirse a IMDb.
+
+### Validación de latino3 — 13 de noviembre de 2026
+
+- La prueba de dos temporadas con IMDb compartido falló antes del cambio, al igual que la identidad de una película de anime. Después del cambio, las 13 pruebas JVM aprobaron: identidad y enlaces de Kitsu, equivalencias inválidas, etiquetas, búsquedas y caché de sinopsis.
+- APK release compilada y firma conservada. Lint mantiene los 13 errores y 161 avisos de latino2, sin errores nuevos.
+- ONN Android 14 actualizado sin borrar datos. Se añadieron cuatro filas después de las tres de Cinemeta. El respaldo posterior conserva exactamente todas las preferencias de `flix_settings`, los favoritos y las imágenes de perfil de Flix; solo cambian las filas y la marca interna de recuperación del servicio Inicio.
+- En la TV: Ataque a los Titanes y My Hero Academia 2 muestran sinopsis generales en español. Sus enlaces abren las fichas correctas en Nuvio, incluida la segunda temporada de My Hero Academia (ID `kitsu:12268`, año 2017), tras seleccionar un perfil. La búsqueda «naruto» devuelve series y películas de Kitsu. Las puntuaciones llevan la etiqueta Kitsu.
+- Inicio regresa a Flix Latino desde Nuvio, con su servicio activo y sin aviso rojo. Buffer de crashes vacío. No se inició reproducción ni se probó un reinicio o el mando físico: la navegación se envió por ADB.
 
 ## Compilación de prueba
 

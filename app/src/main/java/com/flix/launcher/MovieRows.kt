@@ -146,7 +146,7 @@ class MovieRows(
         lateinit var row: Row
         val adapter = PosterAdapter(w, h, dp, springy, { t -> describe(row, t); onFocus(t); prefetchAround(row) }, onOpen, onMenu, ranked)
         val title = TextView(activity).apply {
-            val kind = if (source.type == "series") "Series" else "Películas"
+            val kind = when (source.type) { "series" -> "Series"; "anime" -> "Anime"; else -> "Películas" }
             // Addons often reuse a name for their movie and series lists; tell them apart.
             val clash = Addons.rows(activity).count { it.enabled && it.title == source.title } > 1
             val base = if (clash) "${source.displayTitle} · $kind" else source.displayTitle
@@ -222,7 +222,7 @@ class MovieRows(
     private fun describe(row: Row, t: Catalog.Title) {
         row.meta.text = android.text.SpannableStringBuilder().apply {
             if (t.type == "series") append("Series    ")
-            Rating.text(t.rating)?.let { append(it).append("    ") }
+            Rating.text(t.rating, t.ratingLabel)?.let { append(it).append("    ") }
             append(listOfNotNull(t.year, runtimeText(t.runtime), t.genres.take(3).map(SpanishText::genre).joinToString(" · ").ifBlank { null }).joinToString("    "))
         }
         Synopsis.bind(row.about, t)
@@ -471,7 +471,7 @@ class Hero(root: View) {
             name.text = title.name
             kind.text = if (title.type == "series") "SERIES" else "PELÍCULA"
             // Netflix leads with a highlighted score; ours is the rating, in gold.
-            val rating = Rating.text(title.rating)
+            val rating = Rating.text(title.rating, title.ratingLabel)
             val rest = listOfNotNull(title.year, runtimeText(title.runtime),
                 title.genres.take(3).map(SpanishText::genre).joinToString(" • ").ifBlank { null }).joinToString("    ")
             meta.text = android.text.SpannableStringBuilder().apply {

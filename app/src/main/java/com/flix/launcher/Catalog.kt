@@ -35,7 +35,13 @@ object Catalog {
         val episode: Int? = null,
         /** For Continue watching: minutes left to watch, when Nuvio knows the length. */
         val minutesLeft: Int? = null,
+        /** A provider-supplied mapping for the Spanish overview, never the playback identity. */
+        val imdbId: String? = null,
     ) {
+        val isKitsu get() = id.matches(Regex("kitsu:[0-9]+"))
+        val synopsisId get() = if (isKitsu) imdbId else id
+        val ratingLabel get() = if (isKitsu) "Kitsu" else "IMDb"
+
         /**
          * Opens Nuvio straight on the title's list of streams, the way Nuvio's own Google TV
          * Continue watching row does (launchMode "stream"). A film or a known episode goes to
@@ -43,6 +49,10 @@ object Catalog {
          * versions without that screen are opened with [nuvioUri] instead.
          */
         fun nuvioStreamIntent(): android.content.Intent {
+            // Kitsu seasons have their own episode numbering. Let the addon's detail page
+            // supply it instead of constructing an IMDb-style season/episode stream ID.
+            if (isKitsu) return android.content.Intent(android.content.Intent.ACTION_VIEW,
+                android.net.Uri.parse(nuvioUri)).setPackage(MainActivity.NUVIO)
             val videoId = when {
                 type == "movie" -> id
                 season != null && episode != null -> "$id:$season:$episode"
@@ -91,6 +101,7 @@ object Catalog {
         ).joinToString("&")
         val path = "${source.base}/catalog/${source.type}/${URLEncoder.encode(source.catalogId, "UTF-8")}"
         val conn = URL(if (extras.isEmpty()) "$path.json" else "$path/$extras.json").openConnection() as HttpURLConnection
+        conn.setRequestProperty("User-Agent", "FlixLatino/1.0 (Android TV)")
         conn.connectTimeout = 6000
         conn.readTimeout = 10000
         conn.instanceFollowRedirects = true
@@ -108,11 +119,14 @@ object Catalog {
     /** JSON nulls come back from optString as the text "null"; treat those, and blanks, as missing. */
     private fun JSONObject.text(key: String): String? = optString(key).takeIf { it.isNotBlank() && it != "null" }
 
-    private fun parse(body: String, addonBase: String): List<Title> {
+    internal fun parse(body: String, addonBase: String): List<Title> {
         val metas = JSONObject(body).getJSONArray("metas")
         return (0 until metas.length()).mapNotNull { i ->
             val m = metas.getJSONObject(i)
-            val id = m.optString("imdb_id").ifBlank { m.optString("id") }.ifBlank { return@mapNotNull null }
+            val providerId = m.text("id")
+            val imdb = m.text("imdb_id")?.takeIf { it.matches(Regex("tt[0-9]+")) }
+            val id = if (providerId?.matches(Regex("kitsu:[0-9]+")) == true) providerId
+                else m.text("imdb_id") ?: providerId ?: return@mapNotNull null
             // Addons that skip artwork still have IMDb ids; metahub serves art for those.
             val art = if (id.startsWith("tt")) "https://images.metahub.space" else null
             val genres = m.optJSONArray("genres") ?: m.optJSONArray("genre")
@@ -129,6 +143,7 @@ object Catalog {
                 genres = genres?.let { g -> (0 until g.length()).map { g.getString(it) } }.orEmpty(),
                 description = m.text("description"),
                 addonBase = addonBase,
+                imdbId = imdb,
             )
         }
     }
@@ -148,6 +163,7 @@ object Catalog {
             val futures = sources.map { (base, type, id) ->
                 pool.submit<List<Title>> {
                     val conn = URL("$base/catalog/$type/$id/search=$q.json").openConnection() as HttpURLConnection
+                    conn.setRequestProperty("User-Agent", "FlixLatino/1.0 (Android TV)")
                     conn.connectTimeout = 5000
                     conn.readTimeout = 7000
                     conn.instanceFollowRedirects = true
@@ -190,6 +206,7 @@ object Catalog {
                     ?.let { runCatching { it.readText() }.getOrNull() }
                     ?: runCatching {
                         val conn = URL(manifest).openConnection() as HttpURLConnection
+                        conn.setRequestProperty("User-Agent", "FlixLatino/1.0 (Android TV)")
                         conn.connectTimeout = 4000
                         conn.readTimeout = 5000
                         val body = try { SafeIo.readText(conn) } finally { conn.disconnect() }

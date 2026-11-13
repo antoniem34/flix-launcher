@@ -296,7 +296,7 @@ class Billboard(private val activity: Activity, parent: ViewGroup, private val o
         name.text = pick.name
         name.visibility = View.VISIBLE
         meta.text = android.text.SpannableStringBuilder().apply {
-            Rating.text(pick.rating)?.let { append(it).append("    ") }
+            Rating.text(pick.rating, pick.ratingLabel)?.let { append(it).append("    ") }
             append(listOfNotNull(pick.year, runtimeText(pick.runtime), pick.genres.take(3).map(SpanishText::genre).joinToString(" · ").ifBlank { null }).joinToString("    "))
         }
         Synopsis.bind(about, pick)

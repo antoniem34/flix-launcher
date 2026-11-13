@@ -25,10 +25,11 @@ object Addons {
     ) {
         val key get() = "$manifest|$type|$catalogId"
         val base get() = manifest.removeSuffix("/manifest.json").removeSuffix("/")
-        val displayTitle get() = if (manifest == CINEMETA) SpanishText.catalog(title) else title
+        val displayTitle get() = if (manifest == CINEMETA || manifest == KITSU) SpanishText.catalog(title) else title
     }
 
     const val CINEMETA = "https://v3-cinemeta.strem.io/manifest.json"
+    const val KITSU = "https://anime-kitsu.strem.fun/manifest.json"
 
     private val DEFAULT_ROWS = listOf(
         Row(CINEMETA, "Cinemeta", "movie", "top", "Popular movies", supportsGenre = true),
@@ -177,6 +178,7 @@ object Addons {
         // Plain http would let anyone on the path swap the rows' content; the app only allows cleartext to sylvan.apple.com.
         if (!manifestUrl.startsWith("https://")) throw IllegalArgumentException("Las URL de complementos deben comenzar con https://")
         val conn = URL(manifestUrl).openConnection() as HttpURLConnection
+        conn.setRequestProperty("User-Agent", "FlixLatino/1.0 (Android TV)")
         conn.connectTimeout = 8000
         conn.readTimeout = 10000
         conn.instanceFollowRedirects = true
