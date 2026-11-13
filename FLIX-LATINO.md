@@ -68,6 +68,25 @@ El filtro se aplica tanto al cambiar de pestaña como al recibir catálogos en s
 - Los respaldos de las 11:31 y 11:45 conservan exactamente todas las preferencias, los favoritos, las imágenes de perfil y las siete filas con su orden. Solo cambia la marca interna `home_service_rebinding`.
 - Servicio Inicio activo, sin aviso rojo y buffer de crashes vacío. Navegación comprobada por ADB; no se repitieron reproducción, reinicio, mando físico ni los enlaces a Nuvio ya verificados en latino3.
 
+## Categorías de anime e Inicio reducido — latino5
+
+La versión `1.0.23-latino5` (código 28) muestra en Inicio únicamente **Anime en emisión** entre las filas de Kitsu. Las demás filas habilitadas siguen disponibles en Anime. El carrusel también respeta la procedencia de las filas: en Inicio solo incorpora anime de la fila en emisión, además de los catálogos habituales de películas y series.
+
+**Complementos y filas → Agregar categorías de anime** añade siete filas temáticas de Kitsu: Mundo Isekai, Magia y hechicería, Mechas y robots, Vida escolar, Juegos y mundos virtuales, Samuráis y Sobrenatural. Se consultan los filtros reales `Isekai`, `Magic`, `Mecha`, `School`, `Game`, `Samurai` y `Supernatural` del catálogo popular. No se reclasifican títulos por su nombre ni se sustituyen por una lista genérica. El 13 de noviembre, Isekai devolvía tres títulos etiquetados; las otras seis consultas devolvían 20 títulos cada una. La cobertura depende de las etiquetas del proveedor. No se añaden estaciones/años: el complemento no publica ese filtro.
+
+La acción añade solo las categorías ausentes y conserva filas desactivadas, nombres y orden anteriores. Las categorías pueden ocultarse, ordenarse o eliminarse con los controles existentes. Sus filtros son fijos y no se reemplazan por el filtro global de género. La identidad de las filas y su caché incluyen ahora la consulta extra para evitar que Isekai, magia y otros temas compartan resultados; las claves de las filas sin consulta extra siguen iguales. No se cambia ninguna preferencia de apariencia, sinopsis ni aplicaciones.
+
+Referencias del proveedor: [manifiesto](https://anime-kitsu.strem.fun/manifest.json), [controlador de catálogos](https://github.com/TheBeastLT/stremio-kitsu-anime/blob/master/addon.js), [consulta real Isekai](https://anime-kitsu.strem.fun/catalog/anime/kitsu-anime-popular/genre=Isekai.json).
+
+### Validación de latino5 — 13 de noviembre de 2026
+
+- Dos pruebas reprodujeron la mezcla de filas en Inicio y la colisión de identidad de categorías. Las 21 pruebas JVM finales aprueban, incluidas la conservación de claves originales y la adición repetida sin duplicar o reactivar categorías deshabilitadas.
+- Release compilada, firma conservada y actualización instalada sobre latino4. Lint mantiene los 13 errores y 161 avisos anteriores, sin errores nuevos.
+- Las siete consultas se comprobaron contra el proveedor: todos los títulos devueltos contenían la etiqueta solicitada. En el ONN se recorrieron las siete categorías; Mundo Isekai muestra tres títulos y la sinopsis española de Slime. Mechas, Juegos y Sobrenatural también mostraron sus sinopsis en español.
+- Inicio conserva Top 10 y las tres filas de Cinemeta, seguidas únicamente de Anime en emisión. La pestaña Anime contiene las cuatro filas originales y las siete temáticas. El botón nuevo añadió siete filas desde la interfaz de la TV.
+- Los respaldos de las 11:52 y 12:02 conservan exactamente los ajustes, favoritos, imágenes de perfil y las siete filas anteriores con su orden. Solo cambian la lista de filas (siete añadidas al final) y la marca interna del servicio Inicio.
+- Servicio Inicio activo, buffer de crashes vacío y TV dejada en Anime. Navegación por ADB; no se repitieron reproducción, reinicio ni pruebas con mando físico.
+
 ## Compilación de prueba
 
 JDK 17, SDK Android 35 y el wrapper Gradle incluido. `local.properties` contiene solamente la ruta local del SDK y, si procede, las credenciales locales de firma; está excluido de Git.

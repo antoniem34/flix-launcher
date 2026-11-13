@@ -111,7 +111,7 @@ class Billboard(private val activity: Activity, parent: ViewGroup, private val o
     }
 
     /** Each offered row's titles that have a backdrop, in arrival order. */
-    private val rows = mutableListOf<List<Catalog.Title>>()
+    private val rows = linkedMapOf<String, Pair<Addons.Row, List<Catalog.Title>>>()
     private var type: String? = null
     private var items: List<Catalog.Title> = emptyList()
     private var index = 0
@@ -164,11 +164,10 @@ class Billboard(private val activity: Activity, parent: ViewGroup, private val o
     }
 
     /** Offered each catalogue row as it loads; its best titles join the carousel. */
-    fun offer(titles: List<Catalog.Title>) {
+    fun offer(source: Addons.Row, titles: List<Catalog.Title>) {
         // Real titles only: addons slip in promo cards like "🎬 New Hindi Dubbed Catalog!".
         val usable = titles.take(20).filter { it.backdrop != null && !isPromo(it.name) }
-        if (usable.isEmpty()) return
-        rows += usable
+        rows[source.key] = source to usable
         rebuild()
     }
 
@@ -235,7 +234,8 @@ class Billboard(private val activity: Activity, parent: ViewGroup, private val o
 
     /** Best two per row, interleaved across rows (row1 #1, row2 #1, …, row1 #2, …), capped at [MAX]. */
     private fun rebuild() {
-        val perRow = rows.map { row -> row.filter { BrowseFilter.title(type, it) }.sortedByDescending(::score).take(2) }
+        val perRow = rows.values.filter { (source, _) -> BrowseFilter.row(type, source) }
+            .map { (_, titles) -> titles.filter { BrowseFilter.title(type, it) }.sortedByDescending(::score).take(2) }
         val picked = mutableListOf<Catalog.Title>()
         for (rank in 0 until 2) for (row in perRow) {
             val t = row.getOrNull(rank) ?: continue

@@ -160,9 +160,17 @@ class RowsActivity : Activity() {
         list.addView(caption("Complementos", top = 0))
         list.addView(group(listOf(add)))
 
+        list.addView(group(listOf(actionRow("Agregar categorías de anime",
+            "Isekai, magia, mechas, vida escolar, juegos, samuráis y sobrenatural", R.drawable.ic_o_plus) {
+            val added = Addons.addAnimeThemes(this)
+            Toast.makeText(this, if (added == 0) "Las categorías ya están agregadas" else "Se agregaron $added filas de anime", Toast.LENGTH_SHORT).show()
+            changed()
+            render()
+        })))
+
         val rows = Addons.rows(this)
         val on = rows.filter { it.enabled }
-        list.addView(caption("En tu inicio · ${on.size}"))
+        list.addView(caption("Filas activas · ${on.size}"))
         if (on.isEmpty()) list.addView(text("Aún no hay filas. Activa una de las siguientes.", 13f, alpha = 0.55f).apply { setPadding(px(12), px(2), 0, px(4)) })
         else list.addView(group(on.mapIndexed { i, row -> rowView(row, position = i + 1, count = on.size) }))
 
@@ -199,7 +207,8 @@ class RowsActivity : Activity() {
         return rowShell(tileBg).apply {
             tag = row.key
             addView(tile, LinearLayout.LayoutParams(px(38), px(38)).apply { marginEnd = px(16) })
-            addView(textBlock(row.displayTitle, "${row.addonName} · $kind"), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            val location = if (row.manifest == Addons.KITSU && !BrowseFilter.row(null, row)) "Solo en Anime" else kind
+            addView(textBlock(row.displayTitle, "${row.addonName} · $location"), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             prev?.let { addView(it) }
             next?.let { addView(it) }
             addView(switch.view)
@@ -266,7 +275,7 @@ class RowsActivity : Activity() {
 
     private fun rowMenu(row: Addons.Row) {
         val actions = buildList<Pair<String, () -> Unit>> {
-            add((if (row.enabled) "Quitar del inicio" else "Mostrar en inicio") to { Addons.setEnabled(this@RowsActivity, row.key, !row.enabled) })
+            add((if (row.enabled) "Ocultar fila" else "Activar fila") to { Addons.setEnabled(this@RowsActivity, row.key, !row.enabled) })
             if (row.enabled) add("Mover al principio" to {
                 val rows = Addons.rows(this@RowsActivity)
                 repeat(rows.indexOfFirst { it.key == row.key }) { Addons.moveEnabled(this@RowsActivity, row.key, -1) }

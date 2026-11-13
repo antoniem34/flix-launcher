@@ -267,7 +267,7 @@ class MovieRows(
         row.all = titles
         if (row === topRow) return fillTop(row, titles)
         if (row.source === topFrom) topRow?.let { fillTop(it, titles) }
-        if (row.source !== CONTINUE && billboard.view.parent != null) billboard.offer(titles)
+        if (row.source !== CONTINUE && billboard.view.parent != null) billboard.offer(row.source, titles)
         if (row.source === CONTINUE && billboard.view.parent != null) billboard.resumeWith(titles.firstOrNull { it.id != SIGN_IN.id })
         val hidden = Catalog.hiddenTitles(activity)
         val visible = titles.filter { it.id !in hidden }

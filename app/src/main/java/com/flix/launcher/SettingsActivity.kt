@@ -898,7 +898,7 @@ class SettingsActivity : Activity() {
             tile = bg,
             title = "Complementos y filas",
             subtitle = "$addons ${if (addons == 1) "complemento" else "complementos"} · elige y ordena lo que aparece",
-            badge = "$shown en inicio",
+            badge = "$shown activas",
             badgeColor = 0x2EFFFFFF,
         ) { open(RowsActivity::class.java) }
     }

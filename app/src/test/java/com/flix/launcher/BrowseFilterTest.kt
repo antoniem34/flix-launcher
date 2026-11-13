@@ -29,12 +29,25 @@ class BrowseFilterTest {
         assertTrue(BrowseFilter.title("series", title("tt0903747", "series")))
     }
 
-    @Test fun homeKeepsTheCombinedCatalogAndOrdinaryTabsKeepTheirRows() {
-        for (row in listOf(movies, series, anime)) assertTrue(BrowseFilter.row(null, row))
+    @Test fun homeKeepsOrdinaryRowsAndOnlyUnfilteredAiringAnime() {
+        for (row in listOf(movies, series)) assertTrue(BrowseFilter.row(null, row))
+        assertFalse(BrowseFilter.row(null, anime))
+        assertFalse(BrowseFilter.row(null, anime.copy(catalogId = "kitsu-anime-popular", extra = "genre=Isekai")))
+        val airing = anime.copy(catalogId = "kitsu-anime-airing")
+        assertTrue(BrowseFilter.row(null, airing))
+        assertFalse(BrowseFilter.row(null, airing.copy(extra = "genre=Magic")))
         assertTrue(BrowseFilter.title(null, title("kitsu:7442", "series")))
         assertTrue(BrowseFilter.row("movie", movies))
         assertFalse(BrowseFilter.row("movie", series))
         assertTrue(BrowseFilter.row("series", series))
         assertTrue(BrowseFilter.row("series", movies, continuing = true))
+    }
+
+    @Test fun themedRowsKeepSeparateIdentityWithoutChangingOriginalKeys() {
+        val popular = anime.copy(catalogId = "kitsu-anime-popular")
+        assertEquals("${Addons.KITSU}|anime|kitsu-anime-popular", popular.key)
+        assertNotEquals(popular.key, popular.copy(extra = "genre=Isekai").key)
+        assertNotEquals(popular.copy(extra = "genre=Isekai").key, popular.copy(extra = "genre=Magic").key)
+        assertTrue(BrowseFilter.row("anime", popular.copy(extra = "genre=Isekai")))
     }
 }

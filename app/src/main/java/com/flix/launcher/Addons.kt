@@ -23,7 +23,7 @@ object Addons {
         /** Extra query the catalogue needs, e.g. "skip=0"; blank when none. */
         val extra: String = "",
     ) {
-        val key get() = "$manifest|$type|$catalogId"
+        val key get() = "$manifest|$type|$catalogId" + if (extra.isBlank()) "" else "|$extra"
         val base get() = manifest.removeSuffix("/manifest.json").removeSuffix("/")
         val displayTitle get() = if (manifest == CINEMETA || manifest == KITSU) SpanishText.catalog(title) else title
     }
@@ -132,6 +132,14 @@ object Addons {
     }
 
     fun reset(context: Context) = synchronized(lock) { prefs(context).edit().remove(KEY).apply() }
+
+    /** Appends missing thematic rows without re-enabling or reordering existing rows. */
+    fun addAnimeThemes(context: Context): Int = synchronized(lock) {
+        val existing = rows(context)
+        val fresh = KitsuThemes.missing(existing)
+        if (fresh.isNotEmpty()) save(context, existing + fresh)
+        fresh.size
+    }
 
     /**
      * Reads an addon's manifest and appends one row per browsable catalogue
