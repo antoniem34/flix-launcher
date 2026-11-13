@@ -50,4 +50,32 @@ class BrowseFilterTest {
         assertNotEquals(popular.copy(extra = "genre=Isekai").key, popular.copy(extra = "genre=Magic").key)
         assertTrue(BrowseFilter.row("anime", popular.copy(extra = "genre=Isekai")))
     }
+
+    @Test fun compactHomeContainsOnlyContinueWatchingAndAiringAnime() {
+        val localAiring = Addons.Row("http://192.168.1.10/manifest.json", "AnimES", "series", "animesv2-airing", "En emisión")
+        val kitsuAiring = anime.copy(catalogId = "kitsu-anime-airing")
+        val sources = listOf(movies, series, anime, localAiring, kitsuAiring)
+        val visible = sources.filter { BrowseFilter.row(null, it, sources = sources, compactHome = true) }
+        assertEquals(listOf(localAiring), visible)
+        assertTrue(BrowseFilter.row(null, movies, continuing = true, compactHome = true))
+        assertTrue(BrowseFilter.row(null, kitsuAiring, sources = listOf(kitsuAiring), compactHome = true))
+        assertTrue(BrowseFilter.row(null, movies)) // Other profiles retain their layout.
+    }
+
+    @Test fun compactHomeKeepsCatalogueTabsSeparateFromContinueWatching() {
+        val cartoonMovie = movies.copy(addonName = "CartoonES")
+        val cartoonSeries = series.copy(addonName = "CartoonES")
+        val donghua = series.copy(addonName = "DonghuaLife")
+        val sources = listOf(cartoonMovie, cartoonSeries, anime, donghua)
+        for ((tab, expected) in listOf("movie" to listOf(cartoonMovie), "series" to listOf(cartoonSeries), "anime" to listOf(anime, donghua))) {
+            assertEquals(expected, sources.filter { BrowseFilter.row(tab, it, compactHome = true) })
+            assertFalse(BrowseFilter.row(tab, movies, continuing = true, compactHome = true))
+        }
+    }
+
+    @Test fun compactHomeHidesOnlyItsFeaturedCarousel() {
+        assertFalse(BrowseFilter.carousel(null, compactHome = true))
+        for (tab in listOf("movie", "series", "anime")) assertTrue(BrowseFilter.carousel(tab, compactHome = true))
+        assertTrue(BrowseFilter.carousel(null, compactHome = false))
+    }
 }

@@ -135,6 +135,20 @@ Los filtros de género usan las opciones publicadas por cada manifiesto: por eje
 - En ONN se comprobaron En emisión de AnimES, películas de CineSeriES/CartoonES, Anime, búsquedas de Frieren y Phineas, y apertura de Battle Spirits desde su catálogo local en la ficha correcta de Nuvio. La búsqueda de Frieren ya no muestra títulos ajenos de Danimados. No se inició reproducción en esta prueba.
 - Respaldo de las 14:47 frente al de las 14:21: ajustes de apariencia/sinopsis, favoritos, imágenes de perfil y opciones originales de las 11 filas Kitsu conservados. Cambian las filas de catálogos y la marca interna del servicio Inicio. Antoni quedó seleccionado. El servicio Inicio sigue habilitado; no hubo crashes durante estas pruebas. El buffer retiene un crash de RecyclerView de las 14:05, anterior a la tarea y a latino7.
 
+## Inicio y pestañas por perfil — latino8
+
+En Complementos y filas, «Inicio de este perfil» permite elegir «Solo Seguir viendo y Anime en emisión». La elección se guarda junto al ámbito de catálogos del perfil, sin modificar sus filas activas, orden, favoritos ni ajustes visuales. Los demás perfiles conservan el comportamiento anterior por defecto; la opción forma parte del respaldo habitual.
+
+Con esta opción, Inicio muestra únicamente Seguir viendo y la fila de anime en emisión (AnimES tiene prioridad sobre Kitsu). El carrusel destacado y Top 10 no aparecen en Inicio. Películas conserva las filas de películas de CineSeriES/CartoonES; Series conserva sus filas de series y las de cartoons; Anime reúne AnimES, Kitsu y donghua. Seguir viendo queda solo en Inicio. Los destacados continúan en las tres pestañas y se conserva el acceso a las apps favoritas. Las filas disponibles pero desactivadas siguen desactivadas.
+
+El mismo filtro se aplica al cambiar de pestaña y cuando terminan de cargar las filas en segundo plano. La opción participa en la detección de cambios para reconstruir la vista inmediatamente al volver de los ajustes, sin reiniciar ni restaurar datos.
+
+En Antoni se conserva la selección de 26 catálogos activos: cuatro de películas, siete de series/cartoons y quince de anime (incluido donghua). Top 10, si estaba activado, permanece en Películas. La fila de anime en emisión también permanece en Anime. No se activan automáticamente los otros catálogos disponibles.
+
+Validación del 13 de noviembre de 2026: 45 pruebas JVM aprobadas, incluidos dos casos que fallaban antes del cambio. Release instalada en ONN con la misma firma y sin borrar datos. Se verificaron Inicio, su última fila, las tres pestañas, los destacados de catálogo sin historial fijado y la persistencia de la opción al reiniciar el proceso mediante actualización. Lint conserva los mismos 13 errores/164 avisos heredados. No hubo nuevos crashes durante la prueba.
+
+Respaldo de las 15:07 comparado con el de las 14:54: `flix_settings`, favoritos, avatares y todos los catálogos (activación y orden incluidos) idénticos. Solo se añadió `compact_home_catalogue_rows_local_00847e18c45dcaa85103cb830bedf11c930573c0=true` para Antoni y avanzaron las marcas internas `home_service_rebinding` y `housekeeping_at`. No se restauraron datos ni se cambiaron perfiles, complementos o historial de Nuvio. APK final latino8, código 31, SHA-256 `ac99bf795694d8adba937aee8303afc485a82729630147591ab6edb5cea9c99c`.
+
 ## Compilación de prueba
 
 JDK 17, SDK Android 35 y el wrapper Gradle incluido. `local.properties` contiene solamente la ruta local del SDK y, si procede, las credenciales locales de firma; está excluido de Git.

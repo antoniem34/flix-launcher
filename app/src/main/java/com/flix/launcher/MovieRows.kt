@@ -40,9 +40,11 @@ class MovieRows(
     private val dp = activity.resources.displayMetrics.density
     /** Spare cards shared by all rows; a new one per rebuild so cards of an old poster size aren't reused. */
     private var sharedPool = RecyclerView.RecycledViewPool()
+    private var compactHome = false
 
     /** Rebuilds the rows from the current settings; data comes from the disk cache first. */
     fun rebuild() {
+        compactHome = Addons.compactHome(activity)
         container.removeAllViews()
         rows.clear()
         pending.clear()
@@ -242,7 +244,7 @@ class MovieRows(
     /** Applies the active tab to current rows and to titles arriving asynchronously. */
     fun filter(type: String?) {
         rows.forEach { r ->
-            val match = BrowseFilter.row(type, r.source, r.source === CONTINUE, rows.map { it.source })
+            val match = BrowseFilter.row(type, r.source, r.source === CONTINUE, rows.map { it.source }, compactHome)
             r.view.visibility = if (match && r.adapter.items.isNotEmpty()) View.VISIBLE else View.GONE
         }
         typeFilter = type
@@ -258,7 +260,7 @@ class MovieRows(
     private fun fillTop(row: Row, titles: List<Catalog.Title>) {
         val hidden = Catalog.hiddenTitles(activity)
         row.adapter.items = titles.filter { it.poster != null && it.id !in hidden }.distinctBy { it.id }.take(10)
-        val match = BrowseFilter.row(typeFilter, row.source)
+        val match = BrowseFilter.row(typeFilter, row.source, compactHome = compactHome)
         row.view.visibility = if (row.adapter.items.isEmpty() || !match) View.GONE else View.VISIBLE
     }
 
@@ -272,7 +274,7 @@ class MovieRows(
         val visible = titles.filter { it.id !in hidden }
         staged(row) {
             row.adapter.items = visible
-            val match = BrowseFilter.row(typeFilter, row.source, row.source === CONTINUE, rows.map { it.source })
+            val match = BrowseFilter.row(typeFilter, row.source, row.source === CONTINUE, rows.map { it.source }, compactHome)
             row.view.visibility = if (row.adapter.items.isEmpty() || !match) View.GONE else View.VISIBLE
         }
     }

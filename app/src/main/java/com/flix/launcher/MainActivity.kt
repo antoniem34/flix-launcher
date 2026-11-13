@@ -415,6 +415,7 @@ class MainActivity : Activity() {
         listOf(FlixSettings.SUGGESTIONS, FlixSettings.BILLBOARD, FlixSettings.CONTINUE_WATCHING, FlixSettings.TOP_TEN,
             FlixSettings.GENRE, FlixSettings.POSTER_SIZE, FlixSettings.MOTION, FlixSettings.RATING_BADGE).map { FlixSettings.get(this, it) },
         Addons.rows(this),
+        Addons.compactHome(this),
         NuvioAccount.isSignedIn(this),
         NuvioAccount.selectionKey(this),
         packageManager.getLaunchIntentForPackage(findNuvio(packageManager)) != null,

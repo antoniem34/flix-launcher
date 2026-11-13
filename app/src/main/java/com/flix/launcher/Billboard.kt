@@ -235,6 +235,13 @@ class Billboard(private val activity: Activity, parent: ViewGroup, private val o
 
     /** Best two per row, interleaved across rows (row1 #1, row2 #1, …, row1 #2, …), capped at [MAX]. */
     private fun rebuild() {
+        if (!BrowseFilter.carousel(type, Addons.compactHome(activity))) {
+            items = emptyList()
+            index = 0
+            view.visibility = View.GONE
+            handler.removeCallbacks(tick)
+            return
+        }
         val sources = Addons.rows(activity)
         val perRow = rows.values.filter { (source, _) -> BrowseFilter.row(type, source, sources = sources) }
             .map { (_, titles) -> titles.filter { BrowseFilter.title(type, it) }.sortedByDescending(::score).take(2) }
@@ -243,7 +250,9 @@ class Billboard(private val activity: Activity, parent: ViewGroup, private val o
             val t = row.getOrNull(rank) ?: continue
             if (picked.size < MAX && picked.none { it.id == t.id }) picked += t
         }
-        resume?.takeIf { type != "anime" && BrowseFilter.title(type, it) }?.let { r -> picked.removeAll { it.id == r.id }; picked.add(0, r) }
+        resume?.takeIf {
+            BrowseFilter.row(type, MovieRows.CONTINUE, continuing = true, compactHome = Addons.compactHome(activity)) && BrowseFilter.title(type, it)
+        }?.let { r -> picked.removeAll { it.id == r.id }; picked.add(0, r) }
         val current = featured
         items = picked
         if (picked.isEmpty()) { view.visibility = View.GONE; handler.removeCallbacks(tick); return }

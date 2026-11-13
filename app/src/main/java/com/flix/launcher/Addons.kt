@@ -46,6 +46,12 @@ object Addons {
 
     fun rows(context: Context): List<Row> = readRows(context, rowKey(context))
 
+    /** Stored with this profile's catalogues, without changing global appearance settings. */
+    fun compactHome(context: Context): Boolean = prefs(context).getBoolean("compact_home_${rowKey(context)}", false)
+
+    fun setCompactHome(context: Context, enabled: Boolean) =
+        prefs(context).edit().putBoolean("compact_home_${rowKey(context)}", enabled).apply()
+
     private fun readRows(context: Context, key: String): List<Row> {
         val raw = prefs(context).getString(key, null) ?: return DEFAULT_ROWS
         return runCatching {

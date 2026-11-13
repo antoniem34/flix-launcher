@@ -62,12 +62,12 @@ class RowsActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             setPadding(px(54), px(6), px(16), px(28))
             addView(text("Complementos y filas", 28f, bold = true))
-            addView(text("Elige y ordena las filas de tu inicio", 13f, alpha = 0.55f).apply { setPadding(0, px(4), 0, 0) })
+            addView(text("Elige y ordena las filas de tus pestañas", 13f, alpha = 0.55f).apply { setPadding(0, px(4), 0, 0) })
             addView(caption("Control remoto"))
             addView(card().apply {
                 setPadding(px(14), px(10), px(14), px(10))
                 addView(keyHint("OK", "activa o desactiva una fila"))
-                addView(keyHint("◀ ▶", "mueve una fila en el inicio"))
+                addView(keyHint("◀ ▶", "cambia el orden de las filas"))
                 addView(keyHint("Menú", "más opciones"))
             })
         }
@@ -164,6 +164,21 @@ class RowsActivity : Activity() {
             "Sincronizar catálogos de este perfil", "Conserva las filas activas y su orden", R.drawable.ic_o_layers
         ) { syncNuvio() })))
 
+        val compactHome = Addons.compactHome(this)
+        list.addView(group(listOf(actionRow("Inicio de este perfil",
+            if (compactHome) "Solo Seguir viendo y Anime en emisión" else "Todos los catálogos y Anime en emisión",
+            R.drawable.ic_o_rows) {
+            AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                .setTitle("Inicio de este perfil")
+                .setSingleChoiceItems(arrayOf("Todos los catálogos y Anime en emisión", "Solo Seguir viendo y Anime en emisión"),
+                    if (compactHome) 1 else 0) { dialog, which ->
+                    Addons.setCompactHome(this, which == 1)
+                    dialog.dismiss()
+                    changed()
+                    render()
+                }.setNegativeButton("Cancelar", null).show()
+        })))
+
         list.addView(group(listOf(actionRow("Agregar categorías de anime",
             "Isekai, magia, mechas, vida escolar, juegos, samuráis y sobrenatural", R.drawable.ic_o_plus) {
             val added = Addons.addAnimeThemes(this)
@@ -195,7 +210,7 @@ class RowsActivity : Activity() {
     }
 
     private fun rowView(row: Addons.Row, position: Int?, count: Int): View {
-        val kind = when (row.type) { "series" -> "Series"; "anime" -> "Anime"; "movie" -> "Películas"; else -> row.type }
+        val kind = if (AddonSource.animeRow(row)) "Anime" else when (row.type) { "series" -> "Series"; "movie" -> "Películas"; else -> row.type }
         // Rows on the home screen show their place in the tile; the others show a row icon.
         val tileBg = GradientDrawable().apply { cornerRadius = 11 * dp; setColor(0x14FFFFFF) }
         val tile = FrameLayout(this).apply {
@@ -211,7 +226,8 @@ class RowsActivity : Activity() {
         return rowShell(tileBg).apply {
             tag = row.key
             addView(tile, LinearLayout.LayoutParams(px(38), px(38)).apply { marginEnd = px(16) })
-            val location = if (AddonSource.animeRow(row) && !BrowseFilter.row(null, row)) "Solo en Anime" else kind
+            val onHome = BrowseFilter.row(null, row, sources = Addons.rows(this@RowsActivity), compactHome = Addons.compactHome(this@RowsActivity))
+            val location = if (onHome) "Inicio y $kind" else "Solo en $kind"
             addView(textBlock(row.displayTitle, "${row.addonName} · $location"), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             prev?.let { addView(it) }
             next?.let { addView(it) }
