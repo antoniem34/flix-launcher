@@ -20,6 +20,12 @@ class NuvioContinueTest {
             listOf(Addons.KITSU, Addons.KITSU, "file:///private/manifest.json", "nuvio:continue"), listOf(kitsu)))
     }
 
+    @Test fun kitsuKeepsItsMappingForSpanishSynopsisEvenWhenAProfileAddonAlsoAnswers() {
+        val local = "http://192.168.1.10:7000"
+        assertEquals(listOf(kitsu.base, local), NuvioAccount.metadataBasesForId("kitsu:46474", listOf(local, kitsu.base)))
+        assertEquals(listOf(local, kitsu.base), NuvioAccount.metadataBasesForId("animesv2:following:mal:35834", listOf(local, kitsu.base)))
+    }
+
     @Test fun continueWatchingKeepsTheActualAnimeEpisodeIdentity() {
         fun title(id: String, video: String?) = Catalog.Title(id, "series", "Anime", null, null, null, null, null,
             null, emptyList(), null, season = 1, episode = 1, videoId = video)

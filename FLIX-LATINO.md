@@ -93,6 +93,8 @@ Referencias del proveedor: [manifiesto](https://anime-kitsu.strem.fun/manifest.j
 
 Al abrir un episodio se conserva el `video_id` exacto del historial, incluido Kitsu, AnimES y Pluto. Para «A continuación» se obtiene el identificador del episodio siguiente de la lista de videos del proveedor. Cuando falta un identificador válido de un proveedor personalizado, se abre la ficha en lugar de fabricar un ID de reproducción. La preferencia de sinopsis se conserva; los proveedores con IDs propios mantienen su descripción original.
 
+Para IDs Kitsu se consulta primero su proveedor original: otros complementos pueden responder al mismo ID omitiendo la referencia IMDb necesaria para la sinopsis en español. El orden efectivo de proveedores forma parte de la clave de caché, evitando conservar metadatos anteriores sin esa referencia. Cuando no existe traducción disponible se conserva el aviso, sin generar una sinopsis.
+
 La versión `1.0.23-latino6` (código 29) permite elegir **Servidor local** o **Nuvio en la nube** en Ajustes → Películas y series → Nuvio. Para un servidor propio se introduce su dirección base; Flix comprueba `/.well-known/nuvio`, la identidad del servicio, su dirección anunciada y los métodos de acceso disponibles. Usa la clave pública anunciada, sin pedir claves administrativas. Se conserva el acceso por QR/código y por correo/contraseña cuando el servidor los admite.
 
 Las sesiones cifradas, perfiles elegidos y cachés de Seguir viendo quedan separadas por servidor. La nube conserva su archivo de sesión anterior. Las peticiones iniciadas quedan vinculadas a su servidor y los resultados atrasados de otro perfil se descartan. Las credenciales locales no se envían al servicio externo Nuvio+IPTV. La autenticación no sigue redirecciones HTTP hacia otro destino.
@@ -103,10 +105,13 @@ Referencia: [configuración oficial de clientes Nuvio](https://github.com/NuvioM
 
 ### Validación de latino6 — 13 de noviembre de 2026
 
-- 32 pruebas JVM aprobadas. Los casos de regresión reproducen la falta de proveedores del perfil y la pérdida del ID exacto del episodio; también cubren descubrimiento, separación de servidor y rechazo de direcciones ambiguas.
+- 33 pruebas JVM aprobadas. Los casos de regresión reproducen la falta de proveedores del perfil, la pérdida del ID exacto del episodio y la prioridad incorrecta de metadatos Kitsu; también cubren descubrimiento, separación de servidor y rechazo de direcciones ambiguas.
 - Release compilada, firma conservada e instalada por actualización. Lint sigue sin aprobar: los mismos 13 errores preexistentes y 164 avisos (tres avisos nuevos `SetTextI18n` en la interfaz de conexión, consistente con los literales del proyecto).
 - Autenticación local por código aprobada por el usuario y conservada tras actualizar la APK. En ONN, Inicio muestra nombres de Frieren, Angolmois, KonoSuba, Mago cuerpo a cuerpo, Psyren y A Record Mortal's Journey To Immortality en lugar de sus identificadores técnicos.
-- La comprobación interactiva de apertura de episodios, cambio de perfiles y respaldo posterior está pendiente de dejar libre la TV. No se ha confirmado reproducción.
+- Apertura real de Psyren desde Flix: tras elegir AnimES en Nuvio, la sesión multimedia confirma reproducción de S1:E4 desde el punto guardado; se pausó a los 799028 ms. La reproducción automática avanzó unos segundos durante la prueba. Las capturas del reproductor resultan negras, por lo que no se afirma verificación visual del video ni del audio.
+- Se cambió a CineSeriES y se comprobó su historial distinto, luego se volvió a AnimES. Algunos títulos de CineSeriES aún carecen de metadatos del proveedor; no se atribuye cobertura completa a todos los complementos.
+- Tras la actualización final, Frieren muestra su sinopsis española, T1 E1 y 5 % de progreso en Seguir viendo. Se conserva la sesión local; TV dejada en AnimES y buffer de crashes vacío.
+- Respaldos de las 13:11 y 13:13 comparados con el de las 12:17: preferencias, favoritos, imágenes de perfil y las 14 filas idénticos; solo cambia la marca interna `home_service_rebinding`. No se restauraron ajustes.
 
 ## Compilación de prueba
 

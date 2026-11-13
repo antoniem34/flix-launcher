@@ -386,6 +386,13 @@ object NuvioAccount {
         (profileUrls.map { it.removeSuffix("/manifest.json").trimEnd('/') } + rows.map { it.base })
             .filter { (it.startsWith("https://") || it.startsWith("http://")) && it != CINEMETA }.distinct()
 
+    internal fun metadataBasesForId(id: String, profileBases: List<String>): List<String> = when {
+        id.startsWith("tt") -> listOf(CINEMETA)
+        // Generic profile addons may answer Kitsu IDs without the IMDb mapping needed for Spanish.
+        id.matches(Regex("kitsu:[0-9]+")) -> (listOf(Addons.KITSU.removeSuffix("/manifest.json")) + profileBases).distinct()
+        else -> profileBases
+    }
+
     /**
      * Title details and the addon they came from, cached on disk for a week. Titles no
      * addon knows are remembered for a day, so they aren't asked about on every refresh. IMDb ids
@@ -393,7 +400,8 @@ object NuvioAccount {
      * addons in turn, and that addon is remembered so Nuvio can open the title.
      */
     private fun meta(context: Context, type: String, id: String, profileBases: List<String>, cacheScope: String): Pair<JSONObject, String?>? {
-        val file = File(context.cacheDir, "meta_${Catalog.hashName("$cacheScope|$type|$id")}.json")
+        val bases = metadataBasesForId(id, profileBases)
+        val file = File(context.cacheDir, "meta_${Catalog.hashName("$cacheScope|$type|$id|${bases.joinToString("|")}")}.json")
         val age = System.currentTimeMillis() - file.lastModified()
         if (file.exists() && age < 7 * 24 * 3600_000L) {
             runCatching {
@@ -402,8 +410,6 @@ object NuvioAccount {
                 else return cached.getJSONObject("meta") to cached.optString("flix_base").ifBlank { null }
             }
         }
-        val bases = if (id.startsWith("tt")) listOf(CINEMETA)
-        else profileBases
         for (base in bases) {
             val found = runCatching {
                 val body = request(context, "$base/meta/$type/${java.net.URLEncoder.encode(id, "UTF-8")}.json", null, bearer = null, apikey = false)
