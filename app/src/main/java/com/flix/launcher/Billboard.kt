@@ -299,7 +299,7 @@ class Billboard(private val activity: Activity, parent: ViewGroup, private val o
             Rating.text(pick.rating)?.let { append(it).append("    ") }
             append(listOfNotNull(pick.year, runtimeText(pick.runtime), pick.genres.take(3).joinToString(" · ").ifBlank { null }).joinToString("    "))
         }
-        about.text = pick.description
+        Synopsis.bind(about, pick)
         pick.logo?.let { url ->
             Images.get(url, px(300)) { bmp ->
                 if (bmp == null || featured !== pick) return@get

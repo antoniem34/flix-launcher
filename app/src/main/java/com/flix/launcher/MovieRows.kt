@@ -225,7 +225,7 @@ class MovieRows(
             Rating.text(t.rating)?.let { append(it).append("    ") }
             append(listOfNotNull(t.year, runtimeText(t.runtime), t.genres.take(3).joinToString(" · ").ifBlank { null }).joinToString("    "))
         }
-        row.about.text = t.description
+        Synopsis.bind(row.about, t)
         if (detailed !== row) {
             detailed?.details?.visibility = View.GONE
             row.details.visibility = View.VISIBLE
@@ -479,7 +479,7 @@ class Hero(root: View) {
                 append(rest)
             }
             meta.visibility = if (meta.text.isBlank()) View.GONE else View.VISIBLE
-            description.text = title.description
+            Synopsis.bind(description, title)
             logo.setImageDrawable(null)
             logo.visibility = View.GONE
             name.visibility = View.VISIBLE

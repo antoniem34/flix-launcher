@@ -334,18 +334,22 @@ class MainActivity : Activity() {
 
     /** Re-reads every option and updates the screen in place. */
     private var appliedTheme: String? = null
+    private var appliedSynopsisLanguage: String? = null
 
     private fun applySettings() {
         appliedRevision = FlixSettings.revision(this)
-        // A new theme reaches colours baked into many views: rebuild the screen once.
+        // Theme and synopsis language affect existing views: rebuild once on return.
         val theme = FlixSettings.get(this, FlixSettings.THEME)
-        if (appliedTheme != null && appliedTheme != theme) {
+        val synopsisLanguage = FlixSettings.get(this, FlixSettings.SYNOPSIS_LANGUAGE)
+        if ((appliedTheme != null && appliedTheme != theme) ||
+            (appliedSynopsisLanguage != null && appliedSynopsisLanguage != synopsisLanguage)) {
             // Rebuilding the screen behind the see-through settings panel, on every step through
             // the themes, restarted the video and flashed. Do it once, when home is back in front.
             if (!resumed) { appliedRevision = -1; return }
             appliedTheme = theme; recreate(); return
         }
         appliedTheme = theme
+        appliedSynopsisLanguage = synopsisLanguage
         findViewById<View>(R.id.top_bar).background = Look.panel(this)
         findViewById<View>(R.id.nav_tabs).background = Look.panel(this, Look.of(this).radiusDp * 0.8f)
         findViewById<View>(R.id.weather_card).background = Look.panel(this, Look.of(this).radiusDp * 0.8f)

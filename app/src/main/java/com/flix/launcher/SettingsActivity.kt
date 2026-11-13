@@ -377,6 +377,7 @@ class SettingsActivity : Activity() {
         }
         add(Entry(1, null, "Addons rows catalogues order choose") { rowsCard() })
         opt(1, "On the home screen", FlixSettings.SUGGESTIONS, R.drawable.ic_o_rows, "films movies series")
+        opt(1, "Sinopsis", FlixSettings.SYNOPSIS_LANGUAGE, R.drawable.ic_o_rows, "idioma español latino mexico language synopsis description")
         if (LiveTv.installed(this@SettingsActivity)) opt(1, "On the home screen", FlixSettings.LIVE_TV, R.drawable.ic_o_tv, "live tv channels iptv nuvio+iptv guide epg")
         opt(1, "On the home screen", FlixSettings.BILLBOARD, R.drawable.ic_o_layers, "carousel billboard banner featured hero slideshow poster")
         opt(1, "On the home screen", FlixSettings.CONTINUE_WATCHING, R.drawable.ic_o_resume, "resume progress")
@@ -421,10 +422,9 @@ class SettingsActivity : Activity() {
 
         // About
         add(Entry(4, null, "about version app flix launcher") { infoRow("Flix Launcher ${version()}", "A home screen made for watching. Free, open source, no ads", R.drawable.ic_s_info) })
-        val update = Updater.ready(this@SettingsActivity)
-        act(4, "Updates", if (update != null) "Update to ${update.version}" else "Check for updates",
-            if (update != null) "Downloaded. Installs now; Flix reopens by itself" else "Flix updates itself when the TV is idle",
-            R.drawable.ic_o_reset, "update upgrade new version download install release") { updateNow() }
+        add(Entry(4, "Updates", "update version latino") {
+            infoRow("Flix Latino", "Versión personalizada. Actualizaciones mediante APK del fork.", R.drawable.ic_o_reset)
+        })
         act(4, "Help", "Report a problem", "Scan a code with your phone to send a bug report", R.drawable.ic_o_phone,
             "bug issue problem help feedback broken crash support logs") { Report.show(this@SettingsActivity) }
         add(Entry(4, null, "about tv device model") { infoRow("This TV", "${Build.MANUFACTURER.replaceFirstChar { it.uppercase() }} ${Build.MODEL} · Android ${Build.VERSION.RELEASE}", R.drawable.ic_o_tv) })

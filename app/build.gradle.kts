@@ -18,11 +18,11 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.flix.launcher"
+        applicationId = "com.flix.launcher.latino"
         minSdk = 28
         targetSdk = 35
         versionCode = 24
-        versionName = "1.0.23"
+        versionName = "1.0.23-latino1"
     }
 
     signingConfigs {
@@ -57,6 +57,8 @@ android {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20240303")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("com.google.zxing:core:3.5.3")
     implementation("androidx.profileinstaller:profileinstaller:1.3.1")

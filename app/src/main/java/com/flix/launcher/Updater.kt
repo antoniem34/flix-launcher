@@ -47,6 +47,7 @@ object Updater {
 
     /** A downloaded newer version waiting to be installed, if any. */
     fun ready(context: Context): Release? {
+        if (context.packageName != "com.flix.launcher") return null // Official APKs cannot update this fork.
         val p = prefs(context)
         val version = p.getString("ready_version", null) ?: return null
         if (!isNewer(version, installed(context)) || !apk(context).exists()) return null
@@ -57,6 +58,7 @@ object Updater {
 
     /** Background: looks for a newer release (at most every 12 hours unless [force]) and downloads it. */
     fun check(context: Context, force: Boolean = false): Release? {
+        if (context.packageName != "com.flix.launcher") return null
         val p = prefs(context)
         if (!force && System.currentTimeMillis() - p.getLong("checked_at", 0) < CHECK_EVERY_MS) return ready(context)
         p.edit().putLong("checked_at", System.currentTimeMillis()).apply()
@@ -133,6 +135,7 @@ object Updater {
      * service reconnects and opens the new version.
      */
     fun install(context: Context): Boolean {
+        if (context.packageName != "com.flix.launcher") return false
         val file = apk(context)
         if (!file.exists() || !canInstall(context)) return false
         val installer = context.packageManager.packageInstaller

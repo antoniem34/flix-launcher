@@ -21,8 +21,8 @@ object HomeButton {
     private const val GOOGLE_TV_HOME = "com.google.android.apps.tv.launcherx"
 
     /** The fix shown to people whose TV blocks the service; needs a computer once. */
-    const val UNBLOCK_COMMAND = "adb shell appops set com.flix.launcher ACCESS_RESTRICTED_SETTINGS allow"
-    const val DEFAULT_COMMAND = "adb shell cmd package set-home-activity com.flix.launcher/.MainActivity"
+    const val UNBLOCK_COMMAND = "adb shell appops set com.flix.launcher.latino ACCESS_RESTRICTED_SETTINGS allow"
+    const val DEFAULT_COMMAND = "adb shell cmd package set-home-activity com.flix.launcher.latino/com.flix.launcher.MainActivity"
 
     fun state(context: Context): State = when {
         HomeKeyService.running -> State.SERVICE

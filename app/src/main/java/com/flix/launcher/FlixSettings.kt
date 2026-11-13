@@ -75,6 +75,9 @@ object FlixSettings {
     val ALL_APPS_TILE = toggle("all_apps_tile", "All apps tile", summary = "A tile at the end of favourites that opens every app")
 
     // Movies & shows
+    val SYNOPSIS_LANGUAGE = Option("synopsis_language", "Idioma de las sinopsis",
+        listOf("es-MX" to "Español latino", "original" to "Original del catálogo"), "es-MX",
+        summary = "Sinopsis de TMDB en español de México; conserva la original si no está disponible")
     val SUGGESTIONS = toggle("suggestions", "Movie & show rows", summary = "Rows from your addons; OK opens in Nuvio")
     /** The TV tab with Nuvio+IPTV's channels (shown only when Nuvio+IPTV is installed). */
     val LIVE_TV = toggle("live_tv", "TV tab", true, "Your Nuvio+IPTV channels, with a live preview")
