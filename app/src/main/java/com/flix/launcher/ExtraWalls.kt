@@ -12,7 +12,7 @@ import java.net.URL
  *  - Sci-fi and gaming photos: Wallhaven's community toplist (safe-for-work, general art only).
  *  - Sci-fi video: ESA's Hubble and Webb pan, zoom and fly-through clips, from their video feeds.
  *  - Gaming video: Steam store trailers for a fixed list of well-known games.
- *  - Film photos: official backdrops of the most popular films by genre, from Cinemeta.
+ *  - Film photos: backdrops supplied by the active profile's movie catalogues.
  *  - Film video: the Blender Foundation's open movies (Sintel, Tears of Steel, Elephants Dream).
  * Each list is fetched once and kept for a week; the images and clips themselves stream.
  */
@@ -32,28 +32,26 @@ object ExtraWalls {
         "gaming" to listOf("video games"),
     )
 
-    /** Film wallpapers: Cinemeta's most popular films in each genre, as their official backdrops. */
+    /** Film wallpaper options retain their saved keys and use the configured catalogues. */
     val MOVIE_GENRES = linkedMapOf(
         "films" to null, "films_scifi" to "Sci-Fi", "films_action" to "Action",
         "films_animation" to "Animation", "films_fantasy" to "Fantasy", "films_horror" to "Horror",
     )
 
-    private fun cinemeta(genre: String?): List<Item> = runCatching {
-        val base = "https://v3-cinemeta.strem.io/catalog/movie/" + if (genre == null) "top" else "imdbRating"
-        val g = genre?.let { "genre=" + java.net.URLEncoder.encode(it, "UTF-8") }
-        // Two pages of the catalogue, each film's large backdrop with its name and year.
-        listOf(g, listOfNotNull(g, "skip=50").joinToString("&")).flatMap { extra ->
-            val metas = JSONObject(get(base + (if (extra.isNullOrEmpty()) "" else "/$extra") + ".json")).getJSONArray("metas")
-            (0 until metas.length()).map { metas.getJSONObject(it) }.mapNotNull { m ->
-                val id = m.optString("imdb_id").ifBlank { m.optString("id") }.takeIf { it.startsWith("tt") } ?: return@mapNotNull null
-                Item("https://images.metahub.space/background/large/$id/img",
-                    listOfNotNull(m.optString("name").ifBlank { null }, m.optString("releaseInfo").ifBlank { null }).joinToString(" · "))
-            }
-        }.distinctBy { it.url }
-    }.getOrDefault(emptyList())
+    private fun cataloguePhotos(context: Context, rows: List<Addons.Row>, genre: String?): List<Item> = rows.flatMap { row ->
+        val titles = Catalog.cached(context, row, genre) ?: Catalog.fetch(context, row, genre).orEmpty()
+        val genres = genre?.let { setOf(SpanishText.searchKey(it), SpanishText.searchKey(SpanishText.genre(it))) }
+        titles.filter { genres == null || it.genres.any { g -> SpanishText.searchKey(g) in genres } }.mapNotNull { title ->
+            title.backdrop?.let { Item(it, title.name) }
+        }
+    }.distinctBy { it.url }
 
     fun photos(context: Context, kind: String): List<Item> {
-        if (kind in MOVIE_GENRES) return cached(context, "extra_photos_$kind") { cinemeta(MOVIE_GENRES[kind]) }
+        if (kind in MOVIE_GENRES) {
+            val rows = Addons.rows(context).filter { it.enabled && it.type == "movie" }
+            val scope = Catalog.hashName("${NuvioAccount.catalogueScope(context)}|${rows.joinToString { it.key }}")
+            return cached(context, "extra_catalogue_photos_${kind}_$scope") { cataloguePhotos(context, rows, MOVIE_GENRES[kind]) }
+        }
         val queries = WALLHAVEN[kind] ?: return emptyList()
         return cached(context, "extra_photos_$kind") {
             queries.flatMap { q -> (1..(if (queries.size == 1) 4 else 2)).flatMap { page -> wallhaven(q, page) } }.distinctBy { it.url }

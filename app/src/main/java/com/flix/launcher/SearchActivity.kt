@@ -29,7 +29,7 @@ import java.util.concurrent.Executors
  * Netflix-style search: an on-screen keyboard on the left that the remote drives directly
  * (no pop-up system keyboard), and a grid of films and shows on the right that updates as
  * you type. Before anything is typed it recommends titles from the user's own rows.
- * Results come from the user's addons first, then Cinemeta; OK opens one in Nuvio.
+ * Results come from the user's configured addons; OK opens one in Nuvio.
  */
 class SearchActivity : Activity() {
     private val dp by lazy { resources.displayMetrics.density }

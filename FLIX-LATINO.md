@@ -113,6 +113,28 @@ Referencia: [configuración oficial de clientes Nuvio](https://github.com/NuvioM
 - Tras la actualización final, Frieren muestra su sinopsis española, T1 E1 y 5 % de progreso en Seguir viendo. Se conserva la sesión local; TV dejada en AnimES y buffer de crashes vacío.
 - Respaldos de las 13:11 y 13:13 comparados con el de las 12:17: preferencias, favoritos, imágenes de perfil y las 14 filas idénticos; solo cambia la marca interna `home_service_rebinding`. No se restauraron ajustes.
 
+## Catálogos locales sin Cinemeta — latino7
+
+La versión `1.0.23-latino7` (código 30) admite manifiestos HTTPS y HTTP de la red local, conserva rutas de configuración codificadas y no convierte HTTP a HTTPS. Importa los catálogos navegables de los complementos locales habilitados en el perfil de Nuvio. Los catálogos que requieren una búsqueda se consultan desde Buscar, sin crear una fila vacía para ellos.
+
+Cada perfil local guarda sus filas y su orden por servidor, cuenta y perfil; no se fusionan perfiles, historiales ni complementos de Nuvio. La sincronización añade únicamente filas ausentes y respeta las que el usuario ocultó u ordenó. En la primera importación se activan las filas principales del proveedor (emisión, populares y siguiendo), y los catálogos individuales de Donghua/LACartoons/Danimados; las demás quedan disponibles en Complementos y filas. Las filas Kitsu anteriores se conservan en los perfiles con proveedores de anime. El botón «Sincronizar catálogos de este perfil» permite actualizar el listado.
+
+Anime admite AnimES y los proveedores Donghua, además de Kitsu. Inicio conserva solo la emisión entre esas filas de anime y da prioridad a la de AnimES si está habilitada; la fila Kitsu permanece guardada y disponible en Anime. No se cambia la distribución visual, el tema, los tamaños, la animación, los favoritos ni la preferencia de sinopsis.
+
+Cinemeta se elimina de las filas heredadas y de las consultas directas de búsqueda, metadatos de Seguir viendo, Top 10, tráileres y fondos de películas. Top 10 toma el orden de la primera fila de películas habilitada, sin presentar ese orden como un ranking mundial. El valor anterior `world` se conserva en las preferencias, pero usa los catálogos configurados. Los fondos utilizan sus imágenes de fondo; los tráileres, los metadatos de su proveedor. El identificador antiguo de Cinemeta solo se conserva para reconocerlo y bloquearlo al importar o restaurar ajustes.
+
+Los servicios externos que tus addons usen internamente no se modifican. Kitsu y las sinopsis es-MX siguen disponibles con el comportamiento anterior. La reproducción continúa en Nuvio, conservando los identificadores y enlaces locales del proveedor.
+
+Los filtros de género usan las opciones publicadas por cada manifiesto: por ejemplo, la selección guardada `Action` se envía como `Acción` a AnimES. Si ese complemento no ofrece el género seleccionado, no se envía un filtro inválido. Las filas con nombres repetidos muestran el proveedor para distinguirlas. Danimados anuncia búsqueda pero su endpoint devuelve una lista fija ajena al término; para ese catálogo local Flix filtra los nombres de su catálogo completo, sin modificar el servicio ni sus IDs.
+
+### Validación de latino7 — 13 de noviembre de 2026
+
+- 42 pruebas JVM aprobadas. Se reprodujeron antes de corregirlos los fallos de clasificación de filas locales, identidad de anime, dependencia de Cinemeta para IMDb, búsqueda de Danimados y nombres de géneros. Release compilada y firmada con la clave existente; actualización en ONN sin borrar datos. Lint conserva los mismos 13 errores y 164 avisos previos, sin nuevos errores.
+- El usuario creó su perfil completo Antoni durante la prueba. Se importaron sus 62 catálogos locales navegables: AnimES 28, CineSeriES 14, CartoonES 16 y uno de Danimados, DonghuaLife, MundoDonghua y LACartoons. Se conservaron las 11 filas Kitsu: 73 disponibles, 26 activadas. Los catálogos exclusivos de búsqueda se omiten de las filas, pero participan en Buscar.
+- Se verificó aislamiento entre Antoni y AnimES: este último conserva 41 filas disponibles y 15 activas de sus proveedores de anime, sin las filas de cine y cartoons de Antoni. No se fusionaron ni modificaron perfiles o addons en el servidor Nuvio.
+- En ONN se comprobaron En emisión de AnimES, películas de CineSeriES/CartoonES, Anime, búsquedas de Frieren y Phineas, y apertura de Battle Spirits desde su catálogo local en la ficha correcta de Nuvio. La búsqueda de Frieren ya no muestra títulos ajenos de Danimados. No se inició reproducción en esta prueba.
+- Respaldo de las 14:47 frente al de las 14:21: ajustes de apariencia/sinopsis, favoritos, imágenes de perfil y opciones originales de las 11 filas Kitsu conservados. Cambian las filas de catálogos y la marca interna del servicio Inicio. Antoni quedó seleccionado. El servicio Inicio sigue habilitado; no hubo crashes durante estas pruebas. El buffer retiene un crash de RecyclerView de las 14:05, anterior a la tarea y a latino7.
+
 ## Compilación de prueba
 
 JDK 17, SDK Android 35 y el wrapper Gradle incluido. `local.properties` contiene solamente la ruta local del SDK y, si procede, las credenciales locales de firma; está excluido de Git.

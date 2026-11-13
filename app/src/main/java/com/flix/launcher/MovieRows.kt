@@ -78,14 +78,12 @@ class MovieRows(
             if (cached.isNotEmpty()) show(row, cached) else row.view.visibility = View.GONE
             refreshContinue(force = true)
         }
-        // Top 10: by default ranked from the family's own first movie row (their language),
-        // or Cinemeta's worldwide chart, or not at all.
+        // Top 10 takes the provider's order from the first enabled movie catalogue.
         topFrom = null
         val topSetting = FlixSettings.get(activity, FlixSettings.TOP_TEN)
-        val mine = sources.firstOrNull { it.type == "movie" }
+        val mine = sources.firstOrNull { it.type == "movie" && !AddonSource.animeRow(it) }
         val topSource = when {
-            topSetting == "world" -> TOP_TEN
-            topSetting == "mine" && mine != null -> mine.copy(title = "Los 10 más populares de ${mine.displayTitle}").also { topFrom = mine }
+            topSetting in listOf("mine", "world") && mine != null -> mine.copy(title = "Los 10 de ${mine.displayTitle}").also { topFrom = mine }
             else -> null
         }
         if (topSource != null) {
@@ -94,7 +92,6 @@ class MovieRows(
             container.addView(row.view)
             row.view.visibility = View.GONE
             topRow = row
-            if (topSource === TOP_TEN) load(row, null)
         }
         for (source in sources) {
             val row = makeRow(source, (w * dp).roundToInt(), (h * dp).roundToInt(), genre)
@@ -150,8 +147,9 @@ class MovieRows(
         val title = TextView(activity).apply {
             val kind = when (source.type) { "series" -> "Series"; "anime" -> "Anime"; else -> "Películas" }
             // Addons often reuse a name for their movie and series lists; tell them apart.
-            val clash = Addons.rows(activity).count { it.enabled && it.title == source.title } > 1
-            val base = if (clash) "${source.displayTitle} · $kind" else source.displayTitle
+            val clashes = Addons.rows(activity).filter { it.enabled && it.title == source.title }
+            val suffix = if (clashes.map { it.addonName }.distinct().size > 1) source.addonName else kind
+            val base = if (clashes.size > 1) "${source.displayTitle} · $suffix" else source.displayTitle
             text = if (genre == null || !source.supportsGenre) base else "$base · ${SpanishText.genre(genre)}"
             textSize = 15f
             setTextColor(Color.WHITE)
@@ -244,7 +242,7 @@ class MovieRows(
     /** Applies the active tab to current rows and to titles arriving asynchronously. */
     fun filter(type: String?) {
         rows.forEach { r ->
-            val match = BrowseFilter.row(type, r.source, r.source === CONTINUE)
+            val match = BrowseFilter.row(type, r.source, r.source === CONTINUE, rows.map { it.source })
             r.view.visibility = if (match && r.adapter.items.isNotEmpty()) View.VISIBLE else View.GONE
         }
         typeFilter = type
@@ -274,7 +272,7 @@ class MovieRows(
         val visible = titles.filter { it.id !in hidden }
         staged(row) {
             row.adapter.items = visible
-            val match = BrowseFilter.row(typeFilter, row.source, row.source === CONTINUE)
+            val match = BrowseFilter.row(typeFilter, row.source, row.source === CONTINUE, rows.map { it.source })
             row.view.visibility = if (row.adapter.items.isEmpty() || !match) View.GONE else View.VISIBLE
         }
     }
@@ -316,8 +314,6 @@ class MovieRows(
         /** Stand-in source for the Continue watching row, which comes from the Nuvio account rather than an addon. */
         val CONTINUE = Addons.Row("nuvio:continue", "Nuvio", "movie", "continue", "Seguir viendo")
 
-        /** Cinemeta's most popular films right now, shown as Netflix's numbered Top 10 row. */
-        val TOP_TEN = Addons.Row(Addons.CINEMETA, "Cinemeta", "movie", "top", "Top 10 Movies Today")
 
         /** Placeholder card shown in Continue watching while signed out; opening it starts sign-in. */
         val SIGN_IN = Catalog.Title("flix:signin", "movie", "Inicia sesión en Nuvio para seguir viendo tu contenido",

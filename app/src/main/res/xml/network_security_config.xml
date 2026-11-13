@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Plain http is allowed because IPTV providers (the TV tab's channels, guide and live
-     preview) are any host, and almost all serve over http. Flix's own services, addons and
-     sign-ins all use https addresses in the code; the aerial videos are rewritten to http on
+     preview) are any host, and almost all serve over http. Local Nuvio and addon addresses
+     are separately validated in code; the aerial videos are rewritten to http on
      sylvan.apple.com (Apple signs it with its own root, which Android does not trust). -->
 <network-security-config>
     <base-config cleartextTrafficPermitted="true" />

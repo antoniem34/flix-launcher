@@ -21,8 +21,8 @@ android {
         applicationId = "com.flix.launcher.latino"
         minSdk = 28
         targetSdk = 35
-        versionCode = 29
-        versionName = "1.0.23-latino6"
+        versionCode = 30
+        versionName = "1.0.23-latino7"
     }
 
     signingConfigs {

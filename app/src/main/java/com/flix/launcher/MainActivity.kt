@@ -337,6 +337,7 @@ class MainActivity : Activity() {
     private var appliedSynopsisLanguage: String? = null
 
     private fun applySettings() {
+        Addons.removeCinemeta(this)
         appliedRevision = FlixSettings.revision(this)
         // Theme and synopsis language affect existing views: rebuild once on return.
         val theme = FlixSettings.get(this, FlixSettings.THEME)
@@ -563,8 +564,8 @@ class MainActivity : Activity() {
                     if (p.index != current?.index) {
                         NuvioAccount.setProfile(this, p)
                         drawProfile()
-                        movieRows.clearContinue()
-                        movieRows.refreshContinue(force = true)
+                        applySettings()
+                        syncLocalCatalogues()
                     }
                 }
             }
@@ -895,6 +896,7 @@ class MainActivity : Activity() {
         if (appliedRevision != FlixSettings.revision(this)) applySettings()
         if (browsing) main.postDelayed(pauseForBackdrop, 1500)
         movieRows.refreshContinue()
+        syncLocalCatalogues()
         showUpdateDot()
         Thread {
             runCatching { Updater.check(applicationContext) }
@@ -912,6 +914,24 @@ class MainActivity : Activity() {
         if (!settingsOpen) player?.pause()
         main.removeCallbacks(goIdle)
         super.onPause()
+    }
+
+    private val syncingCatalogues = mutableSetOf<String>()
+    private var syncedCatalogues: String? = null
+
+    /** A profile switch refreshes its catalogue list without touching other profiles or preferences. */
+    private fun syncLocalCatalogues() {
+        if (!NuvioAccount.isSignedIn(this) || NuvioAccount.backend(this).isCloud) return
+        val selection = NuvioAccount.selectionKey(this)
+        if (selection == syncedCatalogues || !syncingCatalogues.add(selection)) return
+        Thread {
+            val result = runCatching { Addons.syncFromNuvio(applicationContext) }
+            main.post {
+                syncingCatalogues.remove(selection)
+                if (isDestroyed || NuvioAccount.selectionKey(this) != selection) return@post
+                if (result.isSuccess) { syncedCatalogues = selection; applySettings() }
+            }
+        }.start()
     }
 
     override fun onTrimMemory(level: Int) {

@@ -33,7 +33,6 @@ object NuvioAccount {
     data class Profile(val index: Int, val name: String, val color: Int = 0xFF4F7CFF.toInt())
 
     private const val CONFIG_URL = "https://nuvio.tv/config.js"
-    private const val CINEMETA = "https://v3-cinemeta.strem.io"
 
     /** A reply from Nuvio with an HTTP error status, so callers can tell "rejected" from "offline". */
     class HttpError(val code: Int, message: String) : IllegalStateException(message)
@@ -71,6 +70,17 @@ object NuvioAccount {
 
     /** Snapshot used to discard results belonging to a previous server, account or profile. */
     fun selectionKey(context: Context): String = "${backend(context).url}|${isSignedIn(context)}|${prefs(context).getString("session_id", "legacy")}|${profile(context)?.index}"
+
+    /** Stable across token refreshes and sign-ins, isolated by account and profile. */
+    fun catalogueScope(context: Context): String? {
+        val context = scope(context)
+        if (backend(context).isCloud || !isSignedIn(context)) return null
+        val profile = profile(context) ?: return null
+        val p = prefs(context)
+        val owner = p.getString("catalogue_owner", null) ?: readToken(context, "access_token")?.let(::userId)
+            ?.also { p.edit().putString("catalogue_owner", it).apply() } ?: return null
+        return "${backend(context).url}|$owner|${profile.index}"
+    }
 
     // Cheap check (no decryption) so the UI thread can call it; a token that later fails
     // to decrypt signs the user out, after which this turns false.
@@ -230,7 +240,7 @@ object NuvioAccount {
 
     // ---- Continue watching ----
 
-    /** Unfinished titles for the chosen profile, newest first, with artwork from Cinemeta. */
+    /** Unfinished titles for the chosen profile, newest first, with its providers' artwork. */
     fun continueWatching(context: Context): List<Catalog.Title> {
         val context = scope(context)
         val selection = selectionKey(context)
@@ -384,20 +394,19 @@ object NuvioAccount {
 
     internal fun metadataBases(profileUrls: List<String>, rows: List<Addons.Row>): List<String> =
         (profileUrls.map { it.removeSuffix("/manifest.json").trimEnd('/') } + rows.map { it.base })
-            .filter { (it.startsWith("https://") || it.startsWith("http://")) && it != CINEMETA }.distinct()
+            .filter { AddonSource.supported(it) }.distinct()
 
     internal fun metadataBasesForId(id: String, profileBases: List<String>): List<String> = when {
-        id.startsWith("tt") -> listOf(CINEMETA)
         // Generic profile addons may answer Kitsu IDs without the IMDb mapping needed for Spanish.
         id.matches(Regex("kitsu:[0-9]+")) -> (listOf(Addons.KITSU.removeSuffix("/manifest.json")) + profileBases).distinct()
         else -> profileBases
-    }
+    }.filter { AddonSource.supported(it) }
 
     /**
      * Title details and the addon they came from, cached on disk for a week. Titles no
-     * addon knows are remembered for a day, so they aren't asked about on every refresh. IMDb ids
-     * come from Cinemeta; other ids (e.g. IndiaStreamz's) are asked of the user's own
-     * addons in turn, and that addon is remembered so Nuvio can open the title.
+     * addon knows are remembered for a day, so they aren't asked about on every refresh.
+     * The user's own addons are asked in order, and the responding addon is remembered
+     * so Nuvio can open the title.
      */
     private fun meta(context: Context, type: String, id: String, profileBases: List<String>, cacheScope: String): Pair<JSONObject, String?>? {
         val bases = metadataBasesForId(id, profileBases)
@@ -415,9 +424,8 @@ object NuvioAccount {
                 val body = request(context, "$base/meta/$type/${java.net.URLEncoder.encode(id, "UTF-8")}.json", null, bearer = null, apikey = false)
                 JSONObject(body).optJSONObject("meta")?.takeIf { it.optString("name").isNotBlank() }
             }.getOrNull() ?: continue
-            val addon = if (base == CINEMETA) null else base
-            runCatching { SafeIo.write(file, JSONObject().put("meta", found).put("flix_base", addon ?: "").toString()) }
-            return found to addon
+            runCatching { SafeIo.write(file, JSONObject().put("meta", found).put("flix_base", base).toString()) }
+            return found to base
         }
         // Only remember a miss when there was something to ask; a cancelled lookup isn't a miss.
         if (bases.isNotEmpty() && !Thread.currentThread().isInterrupted) {
@@ -485,6 +493,7 @@ object NuvioAccount {
         val expiresAt = session.optLong("expires_at").takeIf { it > 0 }
             ?: (System.currentTimeMillis() / 1000 + session.optLong("expires_in", 3600))
         prefs(context).edit()
+            .putString("catalogue_owner", userId(access))
             .putString("access_token_enc", TokenBox.seal(access))
             .putString("refresh_token_enc", TokenBox.seal(session.getString("refresh_token")))
             .remove("access_token")

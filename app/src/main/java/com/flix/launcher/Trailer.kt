@@ -165,14 +165,14 @@ class Trailer(private val context: Context, private val host: android.widget.Fra
         context.bindService(Intent(context, TrailerService::class.java), conn, Context.BIND_AUTO_CREATE)
     }
 
-    /** The title's YouTube trailer id from Cinemeta (or the addon it came from), cached for a week. */
+    /** The title's YouTube trailer id from its addon, cached per provider for a week. */
     private fun trailerId(title: Catalog.Title): String? = runCatching {
-        val file = File(context.cacheDir, "trailer_${title.id.hashCode().toUInt()}.txt")
+        val base = title.addonBase?.takeIf { AddonSource.supported(it) } ?: return null
+        val file = File(context.cacheDir, "trailer_${Catalog.hashName("$base|${title.type}|${title.id}")}.txt")
         if (file.exists() && System.currentTimeMillis() - file.lastModified() < 7 * 24 * 3600_000L) {
             // Checked again on the way out of the cache: the id ends up inside the player's script.
             return file.readText().takeIf { YT_ID.matches(it) }
         }
-        val base = if (title.id.startsWith("tt")) "https://v3-cinemeta.strem.io" else title.addonBase ?: return null
         val conn = URL("$base/meta/${title.type}/${java.net.URLEncoder.encode(title.id, "UTF-8")}.json").openConnection() as HttpURLConnection
         conn.connectTimeout = 6000
         conn.readTimeout = 8000

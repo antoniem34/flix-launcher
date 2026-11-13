@@ -91,8 +91,8 @@ object FlixSettings {
     val POSTER_SIZE = Option("poster_size", "Tamaño del póster", listOf("small" to "Pequeño", "medium" to "Mediano", "large" to "Grande"), "medium")
     val BACKDROP = toggle("backdrop", "Fondo de la ficha", summary = "Muestra el arte del título seleccionado detrás de las filas")
     val TOP_TEN = Option("top_ten_from", "Fila de los 10 más populares",
-        listOf("mine" to "De mi primera fila", "world" to "Mundial (mayormente en inglés)", "off" to "Desactivado"), "mine",
-        summary = "Fila numerada con las diez películas más populares")
+        listOf("mine" to "De mi primera fila", "world" to "De mis catálogos (opción anterior)", "off" to "Desactivado"), "mine",
+        summary = "Fila numerada con diez películas de tus catálogos")
     val TRAILERS = toggle("trailers", "Reproducir tráileres", summary = "Se reproducen al mantener un póster seleccionado")
     val TRAILER_DELAY = Option("trailer_delay", "Iniciar el tráiler tras",
         listOf("1" to "1 segundo", "2" to "2 segundos", "3" to "3 segundos", "5" to "5 segundos", "8" to "8 segundos"), "2",

@@ -184,7 +184,7 @@ nav button{padding:8px 10px;border-radius:8px;background:#222c38;color:#fff;font
 <h1>Flix Latino · Complementos y filas</h1>
 <p>Pega la URL del manifiesto de un complemento de Stremio/Nuvio. Cada catálogo se convierte en una fila en tu TV.</p>
 ${if (message.isNotBlank()) "<div class=\"msg\">${esc(message)}</div>" else ""}
-<form class="add" method="post" action="/add">$t<input name="url" placeholder="https://…/manifest.json" autocomplete="off" autocapitalize="off"><button>Agregar</button></form>
+<form class="add" method="post" action="/add">$t<input name="url" placeholder="HTTP local o HTTPS · /manifest.json" autocomplete="off" autocapitalize="off"><button>Agregar</button></form>
 <ul>$items</ul>
 </body></html>
 """.trimIndent()

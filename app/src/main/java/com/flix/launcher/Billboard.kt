@@ -235,7 +235,8 @@ class Billboard(private val activity: Activity, parent: ViewGroup, private val o
 
     /** Best two per row, interleaved across rows (row1 #1, row2 #1, …, row1 #2, …), capped at [MAX]. */
     private fun rebuild() {
-        val perRow = rows.values.filter { (source, _) -> BrowseFilter.row(type, source) }
+        val sources = Addons.rows(activity)
+        val perRow = rows.values.filter { (source, _) -> BrowseFilter.row(type, source, sources = sources) }
             .map { (_, titles) -> titles.filter { BrowseFilter.title(type, it) }.sortedByDescending(::score).take(2) }
         val picked = mutableListOf<Catalog.Title>()
         for (rank in 0 until 2) for (row in perRow) {

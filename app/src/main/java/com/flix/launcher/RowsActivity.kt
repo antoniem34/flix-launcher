@@ -160,6 +160,10 @@ class RowsActivity : Activity() {
         list.addView(caption("Complementos", top = 0))
         list.addView(group(listOf(add)))
 
+        if (NuvioAccount.isSignedIn(this)) list.addView(group(listOf(actionRow(
+            "Sincronizar catálogos de este perfil", "Conserva las filas activas y su orden", R.drawable.ic_o_layers
+        ) { syncNuvio() })))
+
         list.addView(group(listOf(actionRow("Agregar categorías de anime",
             "Isekai, magia, mechas, vida escolar, juegos, samuráis y sobrenatural", R.drawable.ic_o_plus) {
             val added = Addons.addAnimeThemes(this)
@@ -207,7 +211,7 @@ class RowsActivity : Activity() {
         return rowShell(tileBg).apply {
             tag = row.key
             addView(tile, LinearLayout.LayoutParams(px(38), px(38)).apply { marginEnd = px(16) })
-            val location = if (row.manifest == Addons.KITSU && !BrowseFilter.row(null, row)) "Solo en Anime" else kind
+            val location = if (AddonSource.animeRow(row) && !BrowseFilter.row(null, row)) "Solo en Anime" else kind
             addView(textBlock(row.displayTitle, "${row.addonName} · $location"), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             prev?.let { addView(it) }
             next?.let { addView(it) }
@@ -298,7 +302,7 @@ class RowsActivity : Activity() {
 
     private fun askForUrl() {
         val input = EditText(this).apply {
-            hint = "https://…/manifest.json"
+            hint = "http://servidor:puerto/manifest.json o HTTPS"
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
             setSingleLine()
         }
@@ -471,7 +475,7 @@ class RowsActivity : Activity() {
 
     /** Lists every catalogue from the Nuvio profile's addons, so any of them can be switched on here. */
     private fun syncNuvio() {
-        if (!NuvioAccount.isSignedIn(this) || !NuvioAccount.backend(this).isCloud) return
+        if (!NuvioAccount.isSignedIn(this)) return
         Thread {
             val added = runCatching { Addons.syncFromNuvio(this) }.getOrDefault(0)
             if (added > 0) runOnUiThread { if (!isFinishing && !isDestroyed) { render(); changed() } }

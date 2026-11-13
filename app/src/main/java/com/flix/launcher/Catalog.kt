@@ -8,8 +8,8 @@ import java.net.URL
 import java.net.URLEncoder
 
 /**
- * Movie and series suggestions from Cinemeta, the free catalogue Stremio and
- * Nuvio use themselves; ids are IMDb ids, which is what Nuvio's deep links take.
+ * Movie and series suggestions from the configured Stremio-compatible addons.
+ * Local provider identities are retained in Nuvio deep links.
  * Responses are cached on disk for six hours, so the home screen fills instantly
  * and still works offline.
  */
@@ -39,8 +39,10 @@ object Catalog {
         val imdbId: String? = null,
         /** Exact episode identity supplied by Nuvio progress or the provider's video list. */
         val videoId: String? = null,
+        val anime: Boolean = false,
     ) {
         val isKitsu get() = id.matches(Regex("kitsu:[0-9]+"))
+        val isAnime get() = anime || AddonSource.animeId(id)
         val synopsisId get() = if (isKitsu) imdbId else id
         val ratingLabel get() = if (isKitsu) "Kitsu" else "IMDb"
         val streamVideoId: String? get() = videoId ?: when {
@@ -91,7 +93,7 @@ object Catalog {
 
     /** Cached titles if any (even stale), for an instant first paint. */
     fun cached(context: Context, source: Addons.Row, genre: String?): List<Title>? =
-        cacheFile(context, source, genre).takeIf { it.exists() }?.let { runCatching { parse(it.readText(), source.base) }.getOrNull() }
+        cacheFile(context, source, genre).takeIf { it.exists() }?.let { runCatching { parse(it.readText(), source.base, AddonSource.animeRow(source)) }.getOrNull() }
 
     fun isFresh(context: Context, source: Addons.Row, genre: String?) =
         cacheFile(context, source, genre).let { it.exists() && System.currentTimeMillis() - it.lastModified() < MAX_AGE_MS }
@@ -99,7 +101,7 @@ object Catalog {
     /** Downloads the catalogue, caches it and returns it; null when offline. */
     fun fetch(context: Context, source: Addons.Row, genre: String?): List<Title>? = runCatching {
         val extras = listOfNotNull(
-            genre?.takeIf { source.supportsGenre }?.let { "genre=${URLEncoder.encode(it, "UTF-8").replace("+", "%20")}" },
+            genreValue(source, genre)?.let { "genre=${URLEncoder.encode(it, "UTF-8").replace("+", "%20")}" },
             source.extra.ifBlank { null },
         ).joinToString("&")
         val path = "${source.base}/catalog/${source.type}/${URLEncoder.encode(source.catalogId, "UTF-8")}"
@@ -113,7 +115,7 @@ object Catalog {
         } finally {
             conn.disconnect()
         }
-        val titles = parse(body, source.base)
+        val titles = parse(body, source.base, AddonSource.animeRow(source))
         SafeIo.write(cacheFile(context, source, genre), body)
         pruneCache(context)
         titles
@@ -122,13 +124,13 @@ object Catalog {
     /** JSON nulls come back from optString as the text "null"; treat those, and blanks, as missing. */
     private fun JSONObject.text(key: String): String? = optString(key).takeIf { it.isNotBlank() && it != "null" }
 
-    internal fun parse(body: String, addonBase: String): List<Title> {
+    internal fun parse(body: String, addonBase: String, anime: Boolean = false): List<Title> {
         val metas = JSONObject(body).getJSONArray("metas")
         return (0 until metas.length()).mapNotNull { i ->
             val m = metas.getJSONObject(i)
             val providerId = m.text("id")
             val imdb = m.text("imdb_id")?.takeIf { it.matches(Regex("tt[0-9]+")) }
-            val id = if (providerId?.matches(Regex("kitsu:[0-9]+")) == true) providerId
+            val id = if (providerId != null && (AddonSource.local(addonBase) || AddonSource.animeId(providerId))) providerId
                 else m.text("imdb_id") ?: providerId ?: return@mapNotNull null
             // Addons that skip artwork still have IMDb ids; metahub serves art for those.
             val art = if (id.startsWith("tt")) "https://images.metahub.space" else null
@@ -147,24 +149,35 @@ object Catalog {
                 description = m.text("description"),
                 addonBase = addonBase,
                 imdbId = imdb,
+                anime = anime,
             )
         }
     }
 
-    /** Searches Cinemeta's movies and series by name (no caching: results are per keystroke). */
     /**
      * Films and series matching [query]: first from the user's own addons that can search
-     * (so Tamil, Telugu… addons find their own titles), then Cinemeta's worldwide list.
+     * (so local providers can find their own titles), with no implicit external catalogue.
      * Every source is asked at once and the whole search is capped at a few seconds.
      */
     fun search(context: Context, query: String, onPartial: ((List<Title>) -> Unit)? = null): List<Title> {
         val q = URLEncoder.encode(query.trim(), "UTF-8").replace("+", "%20")
-        val cinemeta = "https://v3-cinemeta.strem.io"
-        val sources = searchCatalogues(context) + listOf("movie", "series").map { Triple(cinemeta, it, "top") }
+        val sources = searchCatalogues(context)
+        val rows = Addons.rows(context)
         val pool = java.util.concurrent.Executors.newFixedThreadPool(6)
         try {
             val futures = sources.map { (base, type, id) ->
                 pool.submit<List<Title>> {
+                    // This legacy provider advertises search but returns an unrelated fixed list.
+                    // Search its full browsable catalogue locally, preserving its original IDs.
+                    if (id == "danimados" && AddonSource.local(base)) {
+                        val row = rows.firstOrNull { it.base == base && it.type == type && it.catalogId == id }
+                        if (row != null) {
+                            val saved = cached(context, row, null)
+                            val titles = if (saved != null && isFresh(context, row, null)) saved
+                                else fetch(context, row, null) ?: saved.orEmpty()
+                            return@submit localSearch(titles, query).take(15)
+                        }
+                    }
                     val conn = URL("$base/catalog/$type/$id/search=$q.json").openConnection() as HttpURLConnection
                     conn.setRequestProperty("User-Agent", "FlixLatino/1.0 (Android TV)")
                     conn.connectTimeout = 5000
@@ -201,8 +214,7 @@ object Catalog {
 
     /** Searchable catalogues ("search" extra) of the addons behind the user's rows, as (base, type, id). */
     private fun searchCatalogues(context: Context): List<Triple<String, String, String>> =
-        Addons.rows(context).map { it.manifest }.distinct()
-            .filter { it.startsWith("https://") && !it.contains("v3-cinemeta.strem.io") }
+        searchManifestUrls(Addons.rows(context))
             .parallelStream().map { manifest ->
                 val file = File(context.cacheDir, "manifest_${hashName(manifest)}.json")
                 val text = file.takeIf { it.exists() && System.currentTimeMillis() - it.lastModified() < 24 * 3600_000L }
@@ -226,7 +238,21 @@ object Catalog {
                     .map { Triple(base, it.optString("type", "movie"), it.getString("id")) }
             }
             .collect(java.util.stream.Collectors.toList()).flatten()
-            .take(12)
+
+    internal fun searchManifestUrls(rows: List<Addons.Row>): List<String> =
+        rows.map { it.manifest }.distinct().filter { AddonSource.supported(it) }
+
+    internal fun localSearch(titles: List<Title>, query: String): List<Title> {
+        val key = SpanishText.searchKey(query.trim())
+        return titles.filter { SpanishText.searchKey(it.name).contains(key) }
+    }
+
+    internal fun genreValue(source: Addons.Row, genre: String?): String? {
+        if (genre == null || !source.supportsGenre) return null
+        if (source.genreOptions.isEmpty()) return genre
+        val names = setOf(SpanishText.searchKey(genre), SpanishText.searchKey(SpanishText.genre(genre)))
+        return source.genreOptions.firstOrNull { SpanishText.searchKey(it) in names }
+    }
 
     private fun cacheFile(context: Context, source: Addons.Row, genre: String?) =
         File(context.cacheDir, "catalog_${hashName(source.key + "|" + (genre ?: "all"))}.json")
