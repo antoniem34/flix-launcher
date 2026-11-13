@@ -25,6 +25,7 @@ object Addons {
     ) {
         val key get() = "$manifest|$type|$catalogId"
         val base get() = manifest.removeSuffix("/manifest.json").removeSuffix("/")
+        val displayTitle get() = if (manifest == CINEMETA) SpanishText.catalog(title) else title
     }
 
     const val CINEMETA = "https://v3-cinemeta.strem.io/manifest.json"
@@ -143,7 +144,7 @@ object Addons {
             val existing = rows(context)
             val fresh = found.filter { f -> existing.none { it.key == f.key } }
             if (fresh.isEmpty()) throw IllegalArgumentException(
-                if (found.isEmpty()) "$name has no catalogues Flix Launcher can show" else "$name's rows are already added"
+                if (found.isEmpty()) "$name no tiene catálogos compatibles con Flix Latino" else "Las filas de $name ya están agregadas"
             )
             // A big addon would flood the home screen; add its rows hidden so the user picks the few they want.
             save(context, existing + if (fresh.size > MAX_SHOWN_ON_ADD) fresh.map { it.copy(enabled = false) } else fresh)
@@ -174,7 +175,7 @@ object Addons {
     /** An addon's name and one row per browsable catalogue (ones that need a search term are skipped). */
     private fun catalogues(manifestUrl: String): Pair<String, List<Row>> {
         // Plain http would let anyone on the path swap the rows' content; the app only allows cleartext to sylvan.apple.com.
-        if (!manifestUrl.startsWith("https://")) throw IllegalArgumentException("Addon URLs must start with https://")
+        if (!manifestUrl.startsWith("https://")) throw IllegalArgumentException("Las URL de complementos deben comenzar con https://")
         val conn = URL(manifestUrl).openConnection() as HttpURLConnection
         conn.connectTimeout = 8000
         conn.readTimeout = 10000
@@ -182,11 +183,11 @@ object Addons {
         val manifest = try {
             JSONObject(SafeIo.readText(conn))
         } catch (e: Exception) {
-            throw IllegalArgumentException("Couldn't read that addon (${e.javaClass.simpleName})")
+            throw IllegalArgumentException("No se pudo leer el complemento (${e.javaClass.simpleName})")
         } finally {
             conn.disconnect()
         }
-        val name = manifest.optString("name", "Addon")
+        val name = manifest.optString("name", "Complemento")
         val catalogs = manifest.optJSONArray("catalogs") ?: JSONArray()
         val found = mutableListOf<Row>()
         for (i in 0 until catalogs.length()) {

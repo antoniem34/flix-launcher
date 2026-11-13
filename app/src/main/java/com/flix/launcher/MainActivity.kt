@@ -122,7 +122,7 @@ class MainActivity : Activity() {
                 else -> DateFormat.is24HourFormat(this@MainActivity)
             }
             clock.setTime(DateFormat.format(if (is24) "HH" else "h", now).toString(), DateFormat.format("mm", now).toString())
-            date.text = DateFormat.format("EEEE  ·  d MMMM", now)
+            date.text = java.text.SimpleDateFormat("EEEE  ·  d MMMM", SpanishText.locale).format(now)
             greeting.text = greetingFor(DateFormat.format("H", now).toString().toInt())
             sunArc.tick()
             main.postDelayed(this, 60_000 - System.currentTimeMillis() % 60_000 + 50)
@@ -139,12 +139,12 @@ class MainActivity : Activity() {
         rowsScroll.scrollTo(0, 0)
         val rows = findViewById<ViewGroup>(R.id.movie_rows)
         CoachMarks.show(this, listOfNotNull(
-            CoachMarks.Mark(findViewById(R.id.favorites), "Your apps", "The ones you picked. Hold OK on any of them to move or remove it."),
-            CoachMarks.Mark(findViewById(R.id.nav_tabs), if (LiveTv.available(this)) "Movies, Shows, TV, Apps" else "Movies, Shows, Apps",
-                if (LiveTv.available(this)) "Switch what the screen shows. TV has your live channels, playing as you browse."
-                else "Switch what the screen shows. Search is on the left."),
-            CoachMarks.Mark(findViewById(R.id.qs_flix), "Flix settings", "Wallpapers, themes, rows and your apps, whenever you want to change them."),
-            rows.getChildAt(0)?.let { CoachMarks.Mark(it, "Press OK to watch", "Films and shows open in Nuvio. Home brings you back.") },
+            CoachMarks.Mark(findViewById(R.id.favorites), "Tus aplicaciones", "Las que elegiste. Mantén OK sobre una app para moverla o quitarla."),
+            CoachMarks.Mark(findViewById(R.id.nav_tabs), if (LiveTv.available(this)) "Películas, series, TV y apps" else "Películas, series y apps",
+                if (LiveTv.available(this)) "Elige qué ver. TV muestra tus canales en vivo mientras navegas."
+                else "Elige qué ver. La búsqueda está a la izquierda."),
+            CoachMarks.Mark(findViewById(R.id.qs_flix), "Ajustes de Flix", "Cambia tus fondos, temas, filas y aplicaciones cuando quieras."),
+            rows.getChildAt(0)?.let { CoachMarks.Mark(it, "Pulsa OK para ver", "Las películas y series se abren en Nuvio. Inicio te trae de vuelta.") },
         ))
     }
 
@@ -241,7 +241,7 @@ class MainActivity : Activity() {
         val dp = resources.displayMetrics.density
         fun px(v: Float) = (v * dp).toInt()
         // A capsule of dark glass with light travelling round its edge, at the head of the
-        // quick buttons. "Update" and "Install" are the same length, so it never changes width.
+        // quick buttons. "Actualizar" and "Instalar" are the same length, so it never changes width.
         val border = GlowBorder(dp)
         val pill = LinearLayout(this).apply {
             tag = update.version
@@ -250,7 +250,7 @@ class MainActivity : Activity() {
             isFocusable = true
             background = border
             setPadding(px(14f), 0, px(16f), 0)
-            contentDescription = "Install Flix ${update.version}"
+            contentDescription = "Instalar Flix ${update.version}"
         }
         val icon = ImageView(this).apply { setImageResource(R.drawable.ic_o_download); alpha = 0.95f }
         val words = TextView(this).apply {
@@ -270,7 +270,7 @@ class MainActivity : Activity() {
         pill.addView(version, LinearLayout.LayoutParams(-2, -2).apply { marginStart = px(8f) })
         fun label(focused: Boolean) {
             // Short in the bar, so the clock and greeting keep their room; a word more on focus.
-            words.text = if (focused) "Install" else "Update"
+            words.text = if (focused) "Instalar" else "Actualizar"
             words.typeface = android.graphics.Typeface.create("sans-serif-medium", if (focused) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
         }
         label(false)
@@ -294,7 +294,7 @@ class MainActivity : Activity() {
         pill.setOnClickListener {
             when {
                 !Updater.canInstall(this) -> openFlixSettings()
-                Updater.install(this) -> Toast.makeText(this, "Updating to ${update.version}…", Toast.LENGTH_SHORT).show()
+                Updater.install(this) -> Toast.makeText(this, "Actualizando a ${update.version}…", Toast.LENGTH_SHORT).show()
                 else -> openFlixSettings()
             }
         }
@@ -515,10 +515,10 @@ class MainActivity : Activity() {
             homeBanner = this
         }
         banner.text = when {
-            canFix -> "⚠  The Home button isn't going to Flix.  Press OK to fix it"
-            state == HomeButton.State.BLOCKED -> "⚠  Android is blocking Flix's Home switch.  Press OK for the fix"
-            !HomeButton.isGoogleTv(this) -> "⚠  The Home button isn't going to Flix.  Press OK to make Flix your home app"
-            else -> "⚠  The Home button isn't going to Flix.  Press OK, then turn on Flix Launcher"
+            canFix -> "⚠  Inicio no abre Flix. Pulsa OK para corregirlo"
+            state == HomeButton.State.BLOCKED -> "⚠  Android bloquea el inicio de Flix. Pulsa OK para corregirlo"
+            !HomeButton.isGoogleTv(this) -> "⚠  Inicio no abre Flix. Pulsa OK para usarlo como inicio"
+            else -> "⚠  Inicio no abre Flix. Pulsa OK y activa Flix Latino"
         }
         banner.setOnClickListener {
             if (canFix && state != HomeButton.State.BLOCKED) {
@@ -554,7 +554,7 @@ class MainActivity : Activity() {
             val profiles = runCatching { NuvioAccount.profiles(this) }.getOrNull()
             main.post {
                 if (isFinishing) return@post
-                if (profiles.isNullOrEmpty()) { Toast.makeText(this, "Couldn't reach Nuvio", Toast.LENGTH_SHORT).show(); return@post }
+                if (profiles.isNullOrEmpty()) { Toast.makeText(this, "No se pudo conectar con Nuvio", Toast.LENGTH_SHORT).show(); return@post }
                 WhosWatching.show(this, profiles, current) { p ->
                     if (p.index != current?.index) {
                         NuvioAccount.setProfile(this, p)
@@ -704,7 +704,7 @@ class MainActivity : Activity() {
         val intent = (if (details) null else runCatching { title.nuvioStreamIntent() }.getOrNull()?.takeIf { it.resolveActivity(packageManager) != null })
             ?: Intent(Intent.ACTION_VIEW, Uri.parse(title.nuvioUri)).setPackage(MainActivity.NUVIO)
         if (intent.resolveActivity(packageManager) == null) {
-            Toast.makeText(this, "Install Nuvio to watch this", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Instala Nuvio para ver este contenido", Toast.LENGTH_SHORT).show()
             return
         }
         // Nuvio is a heavy app to start; give it the TV's full attention. Stop the trailer
@@ -718,15 +718,15 @@ class MainActivity : Activity() {
             // last film again), so start its task afresh to make it read this one.
             startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
                 android.app.ActivityOptions.makeCustomAnimation(this, android.R.anim.fade_in, android.R.anim.fade_out).toBundle())
-        }.onFailure { Toast.makeText(this, "Couldn't open that", Toast.LENGTH_SHORT).show() }
+        }.onFailure { Toast.makeText(this, "No se pudo abrir", Toast.LENGTH_SHORT).show() }
     }
 
     private fun showTitleMenu(title: Catalog.Title) {
         if (title.id == MovieRows.SIGN_IN.id) return openInNuvio(title)
         OptionsMenu.show(this, title, listOf(
-            "Watch in Nuvio" to { openInNuvio(title) },
-            "More info" to { openInNuvio(title, details = true) },
-            "Hide this title" to {
+            "Ver en Nuvio" to { openInNuvio(title) },
+            "Más información" to { openInNuvio(title, details = true) },
+            "Ocultar este título" to {
                 Catalog.hideTitle(this, title.id)
                 movieRows.refreshHidden()
             },
@@ -813,7 +813,7 @@ class MainActivity : Activity() {
         if (show) {
             appsGridAdapter.style = gridStyle()
             appsGridAdapter.items = allApps
-            appsGridLabel.text = "All apps  ·  ${allApps.size}"
+            appsGridLabel.text = "Todas las apps  ·  ${allApps.size}"
         }
         appsGridLabel.visibility = v
         appsGrid.visibility = v
@@ -847,10 +847,10 @@ class MainActivity : Activity() {
     }
 
     private fun greetingFor(hour: Int) = when (hour) {
-        in 5..11 -> "Good morning"
-        in 12..16 -> "Good afternoon"
-        in 17..21 -> "Good evening"
-        else -> "Good night"
+        in 5..11 -> "Buenos días"
+        in 12..16 -> "Buenas tardes"
+        in 17..21 -> "Buenas noches"
+        else -> "Buenas noches"
     }
 
     override fun onStart() {
@@ -944,7 +944,7 @@ class MainActivity : Activity() {
         main.post { selectHomeTab(); returnToStart() }
     }
 
-    @Deprecated("Home screen has nowhere to go back to")
+    @Deprecated("Ya estás en la pantalla de inicio")
     override fun onBackPressed() {
         // While a trailer has the screen to itself, Back just brings the page back.
         if (immersed) return endImmersive()
@@ -1215,22 +1215,22 @@ class MainActivity : Activity() {
         if (app.packageName == AppRepository.ALL_APPS_TILE) return
         val isFavorite = app.packageName in repo.favorites
         val actions = buildList<Pair<String, () -> Unit>> {
-            add("Open" to { launch(app) })
-            add((if (isFavorite) "Remove from favourites" else "Add to favourites") to {
+            add("Abrir" to { launch(app) })
+            add((if (isFavorite) "Quitar de favoritos" else "Agregar a favoritos") to {
                 repo.toggleFavorite(app.packageName)
                 bindRows()
             })
             if (isFavorite) {
-                add("Move left" to { moveFavorite(app, -1) })
-                add("Move right" to { moveFavorite(app, 1) })
+                add("Mover a la izquierda" to { moveFavorite(app, -1) })
+                add("Mover a la derecha" to { moveFavorite(app, 1) })
             } else {
-                add("Hide from All apps" to {
+                add("Ocultar de Todas las apps" to {
                     repo.hide(app.packageName)
                     loadApps()
                 })
             }
-            add("App info" to { open(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${app.packageName}"))) })
-            add("Uninstall" to { open(Intent(Intent.ACTION_DELETE, Uri.parse("package:${app.packageName}"))) })
+            add("Información de la app" to { open(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${app.packageName}"))) })
+            add("Desinstalar" to { open(Intent(Intent.ACTION_DELETE, Uri.parse("package:${app.packageName}"))) })
         }
         OptionsMenu.show(this, app, actions)
     }
@@ -1290,7 +1290,7 @@ class MainActivity : Activity() {
         runCatching { startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), options) }
             .onFailure {
                 playReturn()
-                Toast.makeText(this, "Couldn't open that", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "No se pudo abrir", Toast.LENGTH_SHORT).show()
             }
     }
 
@@ -1330,7 +1330,7 @@ class MainActivity : Activity() {
         findViewById<TextView>(R.id.weather_temp).text = "${t(report.temperature)}°"
         findViewById<TextView>(R.id.weather_condition).text = report.condition
         findViewById<TextView>(R.id.weather_details).text =
-            "Feels ${t(report.feelsLike)}°"
+            "Sensación ${t(report.feelsLike)}°"
         sunArc.visibility = View.GONE
 
         val forecast = findViewById<LinearLayout>(R.id.forecast)

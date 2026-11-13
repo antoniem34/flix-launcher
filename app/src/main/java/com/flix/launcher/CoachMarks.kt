@@ -75,7 +75,7 @@ object CoachMarks {
             overlay.moveTo(hole)
             title.text = mark.title
             line.text = mark.line
-            hint.text = if (index == visible.lastIndex) "${index + 1} of ${visible.size}   ·   OK to start watching" else "${index + 1} of ${visible.size}   ·   OK next   ·   Back skip"
+            hint.text = if (index == visible.lastIndex) "${index + 1} de ${visible.size}   ·   OK para comenzar" else "${index + 1} de ${visible.size}   ·   OK siguiente   ·   Atrás omitir"
             // The words go in a panel at the bottom of the screen, or the top when the lit part
             // is low, so they never cover what they describe.
             caption.measure(View.MeasureSpec.makeMeasureSpec(root.width, View.MeasureSpec.AT_MOST), View.MeasureSpec.makeMeasureSpec(root.height, View.MeasureSpec.AT_MOST))

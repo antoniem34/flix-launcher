@@ -1,4 +1,4 @@
-> **Flix Latino:** fork con sinopsis en español latino. Consulta [los cambios, instalación y compilación](FLIX-LATINO.md). La documentación que sigue corresponde al proyecto original.
+> **Flix Latino:** fork con interfaz en español y sinopsis en español latino. Consulta [los cambios, instalación y compilación](FLIX-LATINO.md). La documentación que sigue corresponde al proyecto original.
 
 <p align="center">
   <img src="docs/hero.png" alt="Flix Launcher, a custom launcher for Android TV" width="100%">

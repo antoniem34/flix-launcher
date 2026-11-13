@@ -213,7 +213,7 @@
                     android:layout_width="36dp"
                     android:layout_height="36dp"
                     android:layout_marginEnd="4dp"
-                    android:contentDescription="Switch profile"
+                    android:contentDescription="Cambiar perfil"
                     android:focusable="true"
                     android:gravity="center"
                     android:textColor="#FFFFFF"
@@ -226,7 +226,7 @@
                     android:layout_width="36dp"
                     android:layout_height="36dp"
                     android:background="@drawable/nav_pill"
-                    android:contentDescription="Search"
+                    android:contentDescription="Buscar"
                     android:focusable="true"
                     android:padding="9dp"
                     android:src="@drawable/ic_search"
@@ -235,15 +235,15 @@
                 <TextView
                     android:id="@+id/nav_home"
                     style="@style/Flix.NavTab"
-                    android:text="Home" />
+                    android:text="Inicio" />
                 <TextView
                     android:id="@+id/nav_movies"
                     style="@style/Flix.NavTab"
-                    android:text="Movies" />
+                    android:text="Películas" />
                 <TextView
                     android:id="@+id/nav_shows"
                     style="@style/Flix.NavTab"
-                    android:text="Shows" />
+                    android:text="Series" />
                 <TextView
                     android:id="@+id/nav_tv"
                     style="@style/Flix.NavTab"
@@ -368,7 +368,7 @@
                         style="@style/Flix.Text.Muted"
                         android:layout_marginBottom="9dp"
                         android:alpha="0.7"
-                        android:text="Hold OK for options"
+                        android:text="Mantén OK para ver opciones"
                         android:textSize="10sp" />
                 </LinearLayout>
 
@@ -404,25 +404,25 @@
                         <ImageButton
                             android:id="@+id/qs_inputs"
                             style="@style/Flix.QuickButton"
-                            android:contentDescription="Inputs"
+                            android:contentDescription="Entradas"
                             android:src="@drawable/ic_input" />
 
                         <ImageButton
                             android:id="@+id/qs_wifi"
                             style="@style/Flix.QuickButton"
-                            android:contentDescription="Network"
+                            android:contentDescription="Red"
                             android:src="@drawable/ic_wifi" />
 
                         <ImageButton
                             android:id="@+id/qs_flix"
                             style="@style/Flix.QuickButton"
-                            android:contentDescription="Flix Launcher settings"
+                            android:contentDescription="Ajustes de Flix Latino"
                             android:src="@drawable/ic_tune" />
 
                         <ImageButton
                             android:id="@+id/qs_settings"
                             style="@style/Flix.QuickButton"
-                            android:contentDescription="Settings"
+                            android:contentDescription="Ajustes"
                             android:src="@drawable/ic_settings" />
                     </LinearLayout>
                 </LinearLayout>
@@ -433,7 +433,7 @@
                     android:layout_marginStart="44dp"
                     android:layout_marginTop="2dp"
                     android:letterSpacing="0.12"
-                    android:text="ALL APPS"
+                    android:text="TODAS LAS APPS"
                     android:textSize="11sp" />
 
                 <androidx.recyclerview.widget.RecyclerView

@@ -16,7 +16,7 @@ import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import java.net.URLEncoder
 
 /**
- * "Report a problem": a QR code that opens a GitHub bug report on the phone, already filled
+ * "Informar un problema": a QR code that opens a GitHub bug report on the phone, already filled
  * in with this TV, the Flix version, the Home button's state and Flix's recent warnings.
  * Nothing is sent from the TV; the user reads and submits it on their phone.
  */
@@ -40,17 +40,17 @@ object Report {
                 setPadding(pad, pad, pad, pad)
             }, LinearLayout.LayoutParams(size + (24 * dp).toInt(), size + (24 * dp).toInt()))
             addView(TextView(activity).apply {
-                text = "Scan with your phone's camera. It opens a bug report with this TV's details and Flix's recent errors filled in. " +
-                    "Describe what happened, then submit it (you'll need a GitHub account)."
+                text = "Escanea con tu teléfono. Se abrirá un informe con los datos de la TV y los errores recientes de Flix. " +
+                    "Describe lo ocurrido y envíalo. Necesitarás una cuenta de GitHub."
                 textSize = 14f
                 setTextColor(0xCCFFFFFF.toInt())
                 setPadding((24 * dp).toInt(), 0, 0, 0)
             }, LinearLayout.LayoutParams(0, -2, 1f))
         }
         AlertDialog.Builder(activity, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-            .setTitle("Report a problem")
+            .setTitle("Informar un problema")
             .setView(view)
-            .setPositiveButton("Done", null)
+            .setPositiveButton("Listo", null)
             .show()
             // Alert dialogs are phone-narrow; widen it so the text sits beside the code.
             .window?.setLayout((680 * dp).toInt(), android.view.ViewGroup.LayoutParams.WRAP_CONTENT)
@@ -60,7 +60,7 @@ object Report {
         val version = runCatching { activity.packageManager.getPackageInfo(activity.packageName, 0).versionName }.getOrNull().orEmpty()
         val tv = "${Build.MANUFACTURER.replaceFirstChar { it.uppercase() }} ${Build.MODEL}, Android ${Build.VERSION.RELEASE}"
         val base = NEW_ISSUE + "&tv=" + enc(tv) + "&version=" + enc(version)
-        val header = "Home button: ${HomeButton.describe(activity)}\n"
+        val header = "Botón Inicio: ${HomeButton.describe(activity)}\n"
         var logs = header + recentLogs()
         // Drop the oldest lines until the encoded link fits the code.
         while (logs.length > header.length && (base + "&logs=" + enc(logs)).length > MAX_URL) {

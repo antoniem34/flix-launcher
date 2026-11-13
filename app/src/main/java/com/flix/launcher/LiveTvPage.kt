@@ -73,8 +73,8 @@ class LiveTvPage(private val activity: Activity, private val videoHost: FrameLay
         addView(bar, FrameLayout.LayoutParams(0, -1))
     }
     private val next = text("", 12.5f, alpha = 0.7f)
-    val watch = pill("▶   Watch", primary = true)
-    private val guideButton = pill("Guide", primary = false)
+    val watch = pill("▶   Ver", primary = true)
+    private val guideButton = pill("Guía", primary = false)
     private val message = text("", 15f, alpha = 0.85f).apply { visibility = View.GONE; setLineSpacing(0f, 1.25f) }
 
     /** The focused channel's details, over the live picture: no card, like the Movies tab's. */
@@ -164,10 +164,10 @@ class LiveTvPage(private val activity: Activity, private val videoHost: FrameLay
             rowsBox.removeAllViews(); rows.clear()
             android.util.Log.i("Flix", "Live TV: $state, lineup ${lineup != null}")
             showMessage(when (state) {
-                LiveTv.State.NOT_SIGNED_IN -> "Sign in to Nuvio in Flix settings to see your Nuvio+IPTV channels here."
-                LiveTv.State.NOT_INSTALLED -> "Install Nuvio+IPTV to watch live TV from here."
+                LiveTv.State.NOT_SIGNED_IN -> "Inicia sesión en Nuvio desde los ajustes de Flix para ver tus canales de Nuvio+IPTV."
+                LiveTv.State.NOT_INSTALLED -> "Instala Nuvio+IPTV para ver TV en vivo desde aquí."
                 else -> if (!LiveTv.failed) ""
-                    else "Couldn't get your channels from Nuvio+IPTV.\nCheck the internet connection, and that Setup Sync is on in Nuvio+IPTV's Live TV settings."
+                    else "No se pudieron obtener tus canales de Nuvio+IPTV.\nRevisa internet y activa Setup Sync en sus ajustes de TV en vivo."
             })
             return
         }
@@ -187,8 +187,8 @@ class LiveTvPage(private val activity: Activity, private val videoHost: FrameLay
         val recent = LiveTv.recent(activity).mapNotNull { byKey[it] }.filter { it.key !in LiveTv.hidden(activity) }
         val sections = buildList {
             // Recently watched first; until there is any, the favourites take its place.
-            if (recent.isNotEmpty()) add("Recently watched" to recent)
-            else if (lineup.favourites.isNotEmpty()) add("Your channels" to lineup.favourites)
+            if (recent.isNotEmpty()) add("Vistos recientemente" to recent)
+            else if (lineup.favourites.isNotEmpty()) add("Tus canales" to lineup.favourites)
             lineup.groups.forEach { add(pretty(it.name) to it.channels) }
         }.map { (n, l) -> n to l.filter { it.key !in hidden } }.filter { it.second.isNotEmpty() }
         sections.forEach { (name, list) -> addRow(name, list) }
@@ -200,16 +200,16 @@ class LiveTvPage(private val activity: Activity, private val videoHost: FrameLay
         message.text = text
         message.visibility = View.VISIBLE
         about.visibility = View.GONE
-        title.text = "Live TV"
+        title.text = "TV en vivo"
         times.text = ""; about.text = ""; next.text = ""; channelLine.text = "Nuvio+IPTV"
         track.visibility = View.INVISIBLE
         chip.visibility = View.GONE
-        watch.text = "Open Nuvio+IPTV"
+        watch.text = "Abrir Nuvio+IPTV"
         info.findViewWithTag<View>("buttons")?.visibility = View.VISIBLE
         stopVideo()
     }
 
-    /** "TAMIL | NEWS" reads as "Tamil · News". */
+    /** "TAMIL | NEWS" reads as "Tamil · Noticias". */
     private fun pretty(group: String) = group.split('|').joinToString("  ·  ") { part ->
         part.trim().lowercase().split(' ').joinToString(" ") { w -> w.replaceFirstChar { it.uppercase() } }
     }
@@ -260,8 +260,8 @@ class LiveTvPage(private val activity: Activity, private val videoHost: FrameLay
         current = channel
         chip.visibility = if (channel.logo != null) View.VISIBLE else View.GONE
         track.visibility = View.VISIBLE
-        watch.text = "▶   Watch"
-        channelLine.text = "CH ${channel.number}  ·  ${pretty(channel.group)}"
+        watch.text = "▶   Ver"
+        channelLine.text = "Canal ${channel.number}  ·  ${pretty(channel.group)}"
         title.text = channel.name.substringAfter(": ").trim()
         times.text = ""; about.text = ""; next.text = ""
         setProgress(0f)
@@ -284,14 +284,14 @@ class LiveTvPage(private val activity: Activity, private val videoHost: FrameLay
         if (now != null) {
             title.text = now.title
             val left = ((now.end - System.currentTimeMillis()) / 60000).coerceAtLeast(0)
-            times.text = "${clock.format(Date(now.start))} – ${clock.format(Date(now.end))}   ·   ${left}m left"
+            times.text = "${clock.format(Date(now.start))} – ${clock.format(Date(now.end))}   ·   Faltan ${left} min"
             about.text = now.about.orEmpty()
             setProgress(now.progress())
         } else {
             title.text = channel.name.substringAfter(": ").trim()
-            times.text = "Live now"
+            times.text = "Ahora en vivo"
         }
-        next.text = g?.next?.let { "Next  ${clock.format(Date(it.start))}   ${it.title}" }.orEmpty()
+        next.text = g?.next?.let { "Después  ${clock.format(Date(it.start))}   ${it.title}" }.orEmpty()
     }
 
     private fun setProgress(f: Float) {
@@ -492,14 +492,14 @@ class LiveTvPage(private val activity: Activity, private val videoHost: FrameLay
         menuAt = now
         val count = LiveTv.hidden(activity).size
         OptionsMenu.show(activity, c.name.substringAfter(": ").trim(), buildList {
-            add("Watch" to { LiveTv.open(activity, c) })
-            add("Hide this channel" to {
+            add("Ver" to { LiveTv.open(activity, c) })
+            add("Ocultar este canal" to {
                 LiveTv.hide(activity, c)
                 val focusRowIndex = rows.indexOfFirst { r -> (0 until r.childCount).any { r.getChildAt(it).hasFocus() } }.coerceAtLeast(0)
                 render()
                 focusRow(focusRowIndex.coerceAtMost(rows.lastIndex))
             })
-            if (count > 0) add("Show $count hidden channel${if (count == 1) "" else "s"}" to { LiveTv.unhideAll(activity); render() })
+            if (count > 0) add("Mostrar $count ${if (count == 1) "canal oculto" else "canales ocultos"}" to { LiveTv.unhideAll(activity); render() })
         })
     }
 

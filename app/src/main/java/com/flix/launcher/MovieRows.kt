@@ -85,7 +85,7 @@ class MovieRows(
         val mine = sources.firstOrNull { it.type == "movie" }
         val topSource = when {
             topSetting == "world" -> TOP_TEN
-            topSetting == "mine" && mine != null -> mine.copy(title = "Top 10 in ${mine.title}").also { topFrom = mine }
+            topSetting == "mine" && mine != null -> mine.copy(title = "Los 10 más populares de ${mine.displayTitle}").also { topFrom = mine }
             else -> null
         }
         if (topSource != null) {
@@ -146,11 +146,11 @@ class MovieRows(
         lateinit var row: Row
         val adapter = PosterAdapter(w, h, dp, springy, { t -> describe(row, t); onFocus(t); prefetchAround(row) }, onOpen, onMenu, ranked)
         val title = TextView(activity).apply {
-            val kind = if (source.type == "series") "Series" else "Movies"
+            val kind = if (source.type == "series") "Series" else "Películas"
             // Addons often reuse a name for their movie and series lists; tell them apart.
             val clash = Addons.rows(activity).count { it.enabled && it.title == source.title } > 1
-            val base = if (clash) "${source.title} · $kind" else source.title
-            text = if (genre == null || !source.supportsGenre) base else "$base · $genre"
+            val base = if (clash) "${source.displayTitle} · $kind" else source.displayTitle
+            text = if (genre == null || !source.supportsGenre) base else "$base · ${SpanishText.genre(genre)}"
             textSize = 15f
             setTextColor(Color.WHITE)
             typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
@@ -223,7 +223,7 @@ class MovieRows(
         row.meta.text = android.text.SpannableStringBuilder().apply {
             if (t.type == "series") append("Series    ")
             Rating.text(t.rating)?.let { append(it).append("    ") }
-            append(listOfNotNull(t.year, runtimeText(t.runtime), t.genres.take(3).joinToString(" · ").ifBlank { null }).joinToString("    "))
+            append(listOfNotNull(t.year, runtimeText(t.runtime), t.genres.take(3).map(SpanishText::genre).joinToString(" · ").ifBlank { null }).joinToString("    "))
         }
         Synopsis.bind(row.about, t)
         if (detailed !== row) {
@@ -312,14 +312,14 @@ class MovieRows(
         private const val STAGGER = 120L
 
         /** Stand-in source for the Continue watching row, which comes from the Nuvio account rather than an addon. */
-        val CONTINUE = Addons.Row("nuvio:continue", "Nuvio", "movie", "continue", "Continue watching")
+        val CONTINUE = Addons.Row("nuvio:continue", "Nuvio", "movie", "continue", "Seguir viendo")
 
         /** Cinemeta's most popular films right now, shown as Netflix's numbered Top 10 row. */
         val TOP_TEN = Addons.Row(Addons.CINEMETA, "Cinemeta", "movie", "top", "Top 10 Movies Today")
 
         /** Placeholder card shown in Continue watching while signed out; opening it starts sign-in. */
-        val SIGN_IN = Catalog.Title("flix:signin", "movie", "Sign in to Nuvio to see what you were watching",
-            null, null, null, null, null, null, emptyList(), "Scan a code with your phone — it takes a few seconds.")
+        val SIGN_IN = Catalog.Title("flix:signin", "movie", "Inicia sesión en Nuvio para seguir viendo tu contenido",
+            null, null, null, null, null, null, emptyList(), "Escanea el código con tu teléfono. Solo toma unos segundos.")
     }
 
     /**
@@ -469,11 +469,11 @@ class Hero(root: View) {
         info.animate().cancel()
         info.animate().alpha(0f).setDuration(120).withEndAction {
             name.text = title.name
-            kind.text = if (title.type == "series") "SERIES" else "FILM"
+            kind.text = if (title.type == "series") "SERIES" else "PELÍCULA"
             // Netflix leads with a highlighted score; ours is the rating, in gold.
             val rating = Rating.text(title.rating)
             val rest = listOfNotNull(title.year, runtimeText(title.runtime),
-                title.genres.take(3).joinToString(" • ").ifBlank { null }).joinToString("    ")
+                title.genres.take(3).map(SpanishText::genre).joinToString(" • ").ifBlank { null }).joinToString("    ")
             meta.text = android.text.SpannableStringBuilder().apply {
                 if (rating != null) append(rating).append("    ")
                 append(rest)

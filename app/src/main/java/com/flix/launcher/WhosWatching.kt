@@ -14,7 +14,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 
 /**
- * "Who's watching?": the Nuvio profiles as big round cartoon faces in a row, the name under
+ * "¿Quién está viendo?": the Nuvio profiles as big round cartoon faces in a row, the name under
  * each, the current one marked. OK picks; the face lifts and gains a white ring on focus.
  */
 object WhosWatching {
@@ -28,7 +28,7 @@ object WhosWatching {
             ProfilePicture.into(face, p)
             val isCurrent = p.index == current?.index
             val name = TextView(activity).apply {
-                text = p.name.ifBlank { "Profile ${p.index}" }
+                text = p.name.ifBlank { "Perfil ${p.index}" }
                 textSize = 17f
                 gravity = Gravity.CENTER
                 setTextColor(if (isCurrent) Color.WHITE else 0xFF9A9A9A.toInt())
@@ -61,7 +61,7 @@ object WhosWatching {
             clipChildren = false
             setBackgroundColor(0xF2101214.toInt())
             addView(TextView(activity).apply {
-                text = "Who's watching?"
+                text = "¿Quién está viendo?"
                 textSize = 36f
                 setTextColor(Color.WHITE)
                 typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)

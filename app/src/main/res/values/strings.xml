@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="home_key_service_label">Flix Latino Home button</string>
-    <string name="home_key_service_description">Opens Flix Latino when you press the Home button on the remote.</string>
+    <string name="home_key_service_label">Botón Inicio de Flix Latino</string>
+    <string name="home_key_service_description">Abre Flix Latino al pulsar el botón Inicio del control remoto.</string>
 </resources>

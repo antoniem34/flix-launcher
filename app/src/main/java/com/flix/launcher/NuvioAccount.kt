@@ -105,7 +105,7 @@ object NuvioAccount {
         val rows = JSONArray(rpc(context, "start_tv_login_session", JSONObject()
             .put("p_device_nonce", nonce)
             .put("p_redirect_base_url", "https://nuvio.tv/tv-login")
-            .put("p_device_name", "Flix Launcher on ${android.os.Build.MODEL}"), anonymous = true))
+            .put("p_device_name", "Flix Latino en ${android.os.Build.MODEL}"), anonymous = true))
         val row = rows.getJSONObject(0)
         val expires = runCatching {
             java.time.OffsetDateTime.parse(row.getString("expires_at")).toInstant().toEpochMilli()
@@ -264,7 +264,7 @@ object NuvioAccount {
                     description = meta.optString("description").takeIf { it.isNotBlank() && it != "null" },
                     progress = progress,
                     minutesLeft = if (progress > 0f) ((duration - position) / unit).toInt() else null,
-                    episodeLabel = if (type == "series" && season > 0) "S$season E$episode" else null,
+                    episodeLabel = if (type == "series" && season > 0) "T$season E$episode" else null,
                     season = season.takeIf { type == "series" && it > 0 },
                     episode = episode.takeIf { type == "series" && season > 0 },
                     addonBase = base,
@@ -377,7 +377,7 @@ object NuvioAccount {
         val p = prefs(context)
         val token = readToken(context, "access_token")
         if (token != null && System.currentTimeMillis() / 1000 < p.getLong("expires_at", 0) - 60) return token
-        val refresh = readToken(context, "refresh_token") ?: throw IllegalStateException("Not signed in to Nuvio")
+        val refresh = readToken(context, "refresh_token") ?: throw IllegalStateException("No has iniciado sesión en Nuvio")
         val body = try {
             request(context, "$API/auth/v1/token?grant_type=refresh_token",
                 JSONObject().put("refresh_token", refresh).toString(), anonBearer = true)
@@ -389,7 +389,7 @@ object NuvioAccount {
             throw e
         }
         saveSession(context, JSONObject(body))
-        return readToken(context, "access_token") ?: throw IllegalStateException("Not signed in to Nuvio")
+        return readToken(context, "access_token") ?: throw IllegalStateException("No has iniciado sesión en Nuvio")
     }
 
     private fun saveSession(context: Context, session: JSONObject) {
@@ -457,7 +457,7 @@ object NuvioAccount {
         p.getString("anon_key", null)?.let { return it }
         val js = request(context, CONFIG_URL, null, bearer = null, apikey = false)
         val key = Regex("supabaseAnonKey[\"']?\\s*[:=]\\s*[\"']([^\"']+)").find(js)?.groupValues?.get(1)
-            ?: throw IllegalStateException("Couldn't read Nuvio's sign-in settings")
+            ?: throw IllegalStateException("No se pudo obtener la configuración de acceso de Nuvio")
         p.edit().putString("anon_key", key).apply()
         return key
     }
@@ -499,7 +499,7 @@ object NuvioAccount {
             val text = stream?.use { String(SafeIo.readBytes(it, SafeIo.MAX_JSON)) }.orEmpty()
             if (code !in 200..299) {
                 val message = runCatching { JSONObject(text).let { it.optString("error_description").ifBlank { it.optString("msg") }.ifBlank { it.optString("error") }.ifBlank { it.optString("message") } } }.getOrNull()
-                throw HttpError(code, message?.ifBlank { null } ?: "Nuvio returned $code")
+                throw HttpError(code, message?.ifBlank { null } ?: "Nuvio respondió con el código $code")
             }
             return text
         } finally {

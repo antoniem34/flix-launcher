@@ -24,7 +24,7 @@ object SafeIo {
         tmp.writeBytes(bytes)
         if (!tmp.renameTo(file)) {
             tmp.delete()
-            throw IOException("Couldn't save ${file.name}")
+            throw IOException("No se pudo guardar ${file.name}")
         }
     }
 
@@ -37,7 +37,7 @@ object SafeIo {
         while (true) {
             val n = input.read(buffer)
             if (n < 0) break
-            if (out.size() + n > limit) throw IOException("Reply too large")
+            if (out.size() + n > limit) throw IOException("La respuesta supera el tamaño admitido")
             out.write(buffer, 0, n)
         }
         return out.toByteArray()

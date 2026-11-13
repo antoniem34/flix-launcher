@@ -66,8 +66,8 @@ class Billboard(private val activity: Activity, parent: ViewGroup, private val o
         ellipsize = android.text.TextUtils.TruncateAt.END
         setLineSpacing(0f, 1.15f)
     }
-    val play = button("▶   Play", primary = true)
-    private val more = button("ⓘ   More info", primary = false)
+    val play = button("▶   Reproducir", primary = true)
+    private val more = button("ⓘ   Más información", primary = false)
 
     val view: View = FrameLayout(activity).apply {
         clipToOutline = true
@@ -287,17 +287,17 @@ class Billboard(private val activity: Activity, parent: ViewGroup, private val o
         logo.visibility = View.GONE
         val resuming = pick === resume
         kind.text = when {
-            resuming && pick.progress == 0f -> "UP NEXT"
-            resuming -> "CONTINUE WATCHING"
+            resuming && pick.progress == 0f -> "A CONTINUACIÓN"
+            resuming -> "SEGUIR VIENDO"
             pick.type == "series" -> "SERIES"
-            else -> "FILM"
+            else -> "PELÍCULA"
         }
-        play.text = if (resuming) resumeLabel(pick) else "▶   Play"
+        play.text = if (resuming) resumeLabel(pick) else "▶   Reproducir"
         name.text = pick.name
         name.visibility = View.VISIBLE
         meta.text = android.text.SpannableStringBuilder().apply {
             Rating.text(pick.rating)?.let { append(it).append("    ") }
-            append(listOfNotNull(pick.year, runtimeText(pick.runtime), pick.genres.take(3).joinToString(" · ").ifBlank { null }).joinToString("    "))
+            append(listOfNotNull(pick.year, runtimeText(pick.runtime), pick.genres.take(3).map(SpanishText::genre).joinToString(" · ").ifBlank { null }).joinToString("    "))
         }
         Synopsis.bind(about, pick)
         pick.logo?.let { url ->
@@ -309,8 +309,8 @@ class Billboard(private val activity: Activity, parent: ViewGroup, private val o
     }
 
     private fun resumeLabel(t: Catalog.Title): String {
-        val verb = if ((t.progress ?: 0f) > 0f) "Resume" else "Play"
-        val left = t.minutesLeft?.takeIf { it > 0 && (t.progress ?: 0f) > 0f }?.let { if (it >= 60) "${it / 60} h ${it % 60} min left" else "$it min left" }
+        val verb = if ((t.progress ?: 0f) > 0f) "Continuar" else "Reproducir"
+        val left = t.minutesLeft?.takeIf { it > 0 && (t.progress ?: 0f) > 0f }?.let { if (it >= 60) "Faltan ${it / 60} h ${it % 60} min" else "Faltan $it min" }
         return "▶   " + listOfNotNull(verb + (t.episodeLabel?.let { " $it" } ?: ""), left).joinToString("  ·  ")
     }
 

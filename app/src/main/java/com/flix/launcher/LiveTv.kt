@@ -177,7 +177,7 @@ object LiveTv {
                         .put("l", s.optString("stream_icon").takeIf { it.startsWith("http") } ?: "")
                         .put("lib", library[s.optString("epg_channel_id").lowercase()] ?: library[nameKey(s.optString("name"))] ?: "")
                         .put("e", s.optString("epg_channel_id"))
-                        .put("g", catNames[s.optString("category_id")] ?: "Uncategorized"))
+                        .put("g", catNames[s.optString("category_id")] ?: "Sin categoría"))
                 }
                 SafeIo.write(cache, out.toString())
             }

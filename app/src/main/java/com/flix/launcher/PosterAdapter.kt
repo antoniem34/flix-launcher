@@ -159,7 +159,7 @@ class PosterAdapter(
         }
         info.addView(logo, android.widget.LinearLayout.LayoutParams(-2, (54 * density).toInt()))
         info.addView(name)
-        // Netflix's badges sit bottom-right of the big card: "Recently added", "Top 10".
+        // Netflix's badges sit bottom-right of the big card: "Recién agregado", "Top 10".
         meta.gravity = Gravity.END
         meta.textSize = 10.5f
         info.addView(meta, android.widget.LinearLayout.LayoutParams(-1, -2))
@@ -387,7 +387,7 @@ class PosterAdapter(
             watched.visibility = if (inProgress) View.VISIBLE else View.GONE
             if (progress != null) {
                 watchedBar.layoutParams = watchedBar.layoutParams.apply { width = (WATCHED_W * density * progress.coerceIn(0.03f, 1f)).toInt() }
-                watchedText.text = "${(progress * 100).toInt().coerceIn(1, 99)}% watched"
+                watchedText.text = "${(progress * 100).toInt().coerceIn(1, 99)}% visto"
             }
             fallback.text = title.name
             // The name underneath is only for posters that don't exist; drawing it under a real
@@ -448,8 +448,8 @@ class PosterAdapter(
     /** Small pill labels for the focused card, each led by a coloured dot like Netflix's. */
     private fun badges(title: Catalog.Title, position: Int, accent: Int): CharSequence {
         val labels = buildList {
-            if (ranked && position in 0..9) add("#${position + 1} in Top 10" to accent)
-            if (title.year == thisYear) add("Recently added" to 0xFF46D369.toInt())
+            if (ranked && position in 0..9) add("#${position + 1} entre los 10 más populares" to accent)
+            if (title.year == thisYear) add("Recién agregado" to 0xFF46D369.toInt())
             if (title.progress != null) title.episodeLabel?.let { add(it to 0xFF5AA9FF.toInt()) }
         }
         return android.text.SpannableStringBuilder().apply {

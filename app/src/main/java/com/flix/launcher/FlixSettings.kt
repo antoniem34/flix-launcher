@@ -19,85 +19,85 @@ object FlixSettings {
     }
 
     private fun toggle(key: String, title: String, default: Boolean = true, summary: String? = null) =
-        Option(key, title, listOf("on" to "On", "off" to "Off"), if (default) "on" else "off", summary)
+        Option(key, title, listOf("on" to "Activado", "off" to "Desactivado"), if (default) "on" else "off", summary)
 
     // Look
-    val THEME = Option("theme", "Theme",
-        listOf("cinema" to "Cinema", "glass" to "Glass", "midnight" to "Midnight", "minimal" to "Minimal"), "cinema",
-        summary = "Colours and shapes of the home screen")
+    val THEME = Option("theme", "Tema",
+        listOf("cinema" to "Cine", "glass" to "Cristal", "midnight" to "Medianoche", "minimal" to "Minimalista"), "cinema",
+        summary = "Colores y formas del inicio")
 
     // What the Home button lands on
-    val HOME_FOCUS = Option("home_focus", "Home opens on",
-        listOf("apps" to "Your apps", "watching" to "What you were watching"), "apps",
-        summary = "Start on your apps, or on Resume for your last show")
+    val HOME_FOCUS = Option("home_focus", "Inicio muestra",
+        listOf("apps" to "Tus aplicaciones", "watching" to "Lo que estabas viendo"), "apps",
+        summary = "Abre tus apps o continúa lo que estabas viendo")
 
     // Icons
-    val ICON_SHAPE = Option("icon_shape", "Icon shape",
-        listOf("circle" to "Circle", "squircle" to "Squircle", "rounded" to "Rounded square", "banner" to "Wide banner"), "circle",
-        summary = "How app tiles are drawn")
-    val ICON_SIZE = Option("icon_size", "Icon size", listOf("small" to "Small", "medium" to "Medium", "large" to "Large"), "medium")
-    val LABELS = Option("labels", "App names", listOf("always" to "Always", "focus" to "When selected", "never" to "Hidden"), "always")
-    val GLOW = toggle("glow", "Colour glow", summary = "Selected apps glow in their own colour")
-    val MOTION = Option("motion", "Focus animation", listOf("spring" to "Springy", "smooth" to "Smooth", "none" to "Off"), "spring")
+    val ICON_SHAPE = Option("icon_shape", "Forma del icono",
+        listOf("circle" to "Círculo", "squircle" to "Superelipse", "rounded" to "Cuadrado redondeado", "banner" to "Banner ancho"), "circle",
+        summary = "Forma de los iconos de las aplicaciones")
+    val ICON_SIZE = Option("icon_size", "Tamaño del icono", listOf("small" to "Pequeño", "medium" to "Mediano", "large" to "Grande"), "medium")
+    val LABELS = Option("labels", "Nombres de apps", listOf("always" to "Siempre", "focus" to "Al seleccionar", "never" to "Ocultos"), "always")
+    val GLOW = toggle("glow", "Brillo de color", summary = "Las apps seleccionadas brillan con su propio color")
+    val MOTION = Option("motion", "Animación del foco", listOf("spring" to "Con rebote", "smooth" to "Suave", "none" to "Desactivado"), "spring")
 
     // Clock & widgets
-    val CLOCK_STYLE = Option("clock_style", "Clock style", listOf("duo" to "Duo", "thin" to "Thin", "bold" to "Bold"), "duo")
-    val CLOCK_FORMAT = Option("clock_format", "Time format", listOf("system" to "System", "12" to "12-hour", "24" to "24-hour"), "system")
-    val GREETING = toggle("greeting", "Greeting")
-    val DATE = toggle("date", "Date")
-    val SUN_ARC = toggle("sun_arc", "Sunrise & sunset arc")
-    val WEATHER = toggle("weather", "Weather", summary = "Chip at the top right")
-    val FORECAST = toggle("forecast", "3-day forecast")
-    val UNITS = Option("units", "Temperature", listOf("c" to "Celsius", "f" to "Fahrenheit"), "c")
+    val CLOCK_STYLE = Option("clock_style", "Estilo del reloj", listOf("duo" to "Dúo", "thin" to "Fino", "bold" to "Grueso"), "duo")
+    val CLOCK_FORMAT = Option("clock_format", "Formato de hora", listOf("system" to "Sistema", "12" to "12 horas", "24" to "24 horas"), "system")
+    val GREETING = toggle("greeting", "Saludo")
+    val DATE = toggle("date", "Fecha")
+    val SUN_ARC = toggle("sun_arc", "Arco de amanecer y atardecer")
+    val WEATHER = toggle("weather", "Clima", summary = "Indicador en la esquina superior derecha")
+    val FORECAST = toggle("forecast", "Pronóstico de 3 días")
+    val UNITS = Option("units", "Temperatura", listOf("c" to "Celsius", "f" to "Fahrenheit"), "c")
 
     // Wallpaper
-    val WALLPAPER = Option("wallpaper", "Background", listOf(
-        "nature" to "Nature photos", "cities" to "City photos",
-        "wildlife" to "Wildlife photos", "beaches" to "Beach photos", "winter" to "Winter photos",
-        "deserts" to "Desert photos", "flowers" to "Flower photos", "night" to "Night sky photos", "castles" to "Castles & temples",
-        "films" to "Blockbusters", "films_scifi" to "Sci-fi films", "films_action" to "Action films", "films_animation" to "Animated films", "films_fantasy" to "Fantasy films", "films_horror" to "Horror films", "scifi" to "Sci-fi art", "gaming" to "Gaming art",
-        "video" to "All aerial videos", "v_nature" to "Landscapes video", "v_sea" to "Oceans video",
-        "v_city" to "Cities video", "v_space" to "Earth from space", "v_art" to "Colour art video",
-        "v_underwater" to "Underwater video", "v_beaches" to "Beaches video", "v_wildlife" to "Wildlife video",
-        "v_snow" to "Snow & aurora video", "v_deserts" to "Deserts video", "v_nightsky" to "Night sky video",
-        "v_fireplace" to "Fireplace", "v_calm" to "Calm colour",
-        "v_scifi" to "Deep space video", "v_gaming" to "Game trailers", "v_films" to "Open movies",
-        "gradient" to "Plain dark"), "nature",
-        summary = "A new Bing photo every minute, or aerial films from Apple TV and Fire TV")
-    val SHUFFLE = toggle("shuffle", "Shuffle scenes")
-    val DIM = Option("dim", "Background dimming", listOf("low" to "Low", "medium" to "Medium", "high" to "High"), "medium")
-    val SCENE_NAME = toggle("scene_name", "Scene name")
+    val WALLPAPER = Option("wallpaper", "Fondo", listOf(
+        "nature" to "Fotos de naturaleza", "cities" to "Fotos de ciudades",
+        "wildlife" to "Fotos de fauna", "beaches" to "Fotos de playas", "winter" to "Fotos de invierno",
+        "deserts" to "Fotos de desiertos", "flowers" to "Fotos de flores", "night" to "Fotos del cielo nocturno", "castles" to "Castillos y templos",
+        "films" to "Éxitos de cine", "films_scifi" to "Ciencia ficción", "films_action" to "Películas de acción", "films_animation" to "Películas animadas", "films_fantasy" to "Películas de fantasía", "films_horror" to "Películas de terror", "scifi" to "Arte de ciencia ficción", "gaming" to "Arte de videojuegos",
+        "video" to "Todos los videos aéreos", "v_nature" to "Videos de paisajes", "v_sea" to "Videos de océanos",
+        "v_city" to "Videos de ciudades", "v_space" to "La Tierra desde el espacio", "v_art" to "Videos de arte de color",
+        "v_underwater" to "Videos submarinos", "v_beaches" to "Videos de playas", "v_wildlife" to "Videos de fauna",
+        "v_snow" to "Videos de nieve y auroras", "v_deserts" to "Videos de desiertos", "v_nightsky" to "Videos del cielo nocturno",
+        "v_fireplace" to "Chimenea", "v_calm" to "Colores relajantes",
+        "v_scifi" to "Videos del espacio profundo", "v_gaming" to "Tráileres de videojuegos", "v_films" to "Cine libre",
+        "gradient" to "Fondo oscuro"), "nature",
+        summary = "Una foto de Bing por minuto o videos aéreos de Apple TV y Fire TV")
+    val SHUFFLE = toggle("shuffle", "Escenas aleatorias")
+    val DIM = Option("dim", "Oscurecer el fondo", listOf("low" to "Bajo", "medium" to "Medio", "high" to "Alto"), "medium")
+    val SCENE_NAME = toggle("scene_name", "Nombre de la escena")
 
     // Behaviour
-    val IDLE = Option("idle", "Fade to scenery after",
-        listOf("off" to "Never", "30" to "30 seconds", "60" to "1 minute", "120" to "2 minutes", "300" to "5 minutes"), "60")
-    val ALL_APPS = toggle("all_apps", "All apps row", default = false)
-    val ALL_APPS_TILE = toggle("all_apps_tile", "All apps tile", summary = "A tile at the end of favourites that opens every app")
+    val IDLE = Option("idle", "Mostrar el fondo tras",
+        listOf("off" to "Nunca", "30" to "30 segundos", "60" to "1 minuto", "120" to "2 minutos", "300" to "5 minutos"), "60")
+    val ALL_APPS = toggle("all_apps", "Fila de todas las apps", default = false)
+    val ALL_APPS_TILE = toggle("all_apps_tile", "Acceso a todas las apps", summary = "Acceso a todas las apps al final de tus favoritos")
 
     // Movies & shows
     val SYNOPSIS_LANGUAGE = Option("synopsis_language", "Idioma de las sinopsis",
         listOf("es-MX" to "Español latino", "original" to "Original del catálogo"), "es-MX",
         summary = "Sinopsis de TMDB en español de México; conserva la original si no está disponible")
-    val SUGGESTIONS = toggle("suggestions", "Movie & show rows", summary = "Rows from your addons; OK opens in Nuvio")
+    val SUGGESTIONS = toggle("suggestions", "Filas de películas y series", summary = "Filas de tus complementos; OK abre el título en Nuvio")
     /** The TV tab with Nuvio+IPTV's channels (shown only when Nuvio+IPTV is installed). */
-    val LIVE_TV = toggle("live_tv", "TV tab", true, "Your Nuvio+IPTV channels, with a live preview")
-    val BILLBOARD = toggle("billboard", "Featured carousel", summary = "Big rotating posters above the rows")
-    val CONTINUE_WATCHING = toggle("continue_watching", "Continue watching", summary = "From your Nuvio account")
-    val GENRE = Option("genre", "Genre filter", listOf("all" to "All genres", "Action" to "Action", "Comedy" to "Comedy", "Drama" to "Drama",
-        "Thriller" to "Thriller", "Horror" to "Horror", "Romance" to "Romance", "Sci-Fi" to "Sci-Fi", "Animation" to "Animation",
-        "Crime" to "Crime", "Family" to "Family"), "all", summary = "Only for rows whose addon supports it")
-    val RATING_BADGE = toggle("rating_badge", "Rating on posters", summary = "Off if your addon's posters already show a rating")
-    val TYPE_TABS = toggle("type_tabs", "Movies and Shows tabs", summary = "Home already shows both")
-    val POSTER_SIZE = Option("poster_size", "Poster size", listOf("small" to "Small", "medium" to "Medium", "large" to "Large"), "medium")
-    val BACKDROP = toggle("backdrop", "Backdrop preview", summary = "Show the focused title's artwork behind the rows")
-    val TOP_TEN = Option("top_ten_from", "Top 10 row",
-        listOf("mine" to "From my first row", "world" to "Worldwide (mostly English)", "off" to "Off"), "mine",
-        summary = "Numbered row of the ten most popular films")
-    val TRAILERS = toggle("trailers", "Play trailers", summary = "Plays behind the preview when a poster stays selected")
-    val TRAILER_DELAY = Option("trailer_delay", "Trailer starts after",
-        listOf("1" to "1 second", "2" to "2 seconds", "3" to "3 seconds", "5" to "5 seconds", "8" to "8 seconds"), "2",
-        summary = "How long a poster stays selected before its trailer plays")
-    val TRAILER_SOUND = toggle("trailer_sound_v2", "Trailer sound", summary = "Off keeps trailers silent")
+    val LIVE_TV = toggle("live_tv", "Pestaña de TV", true, "Tus canales de Nuvio+IPTV con vista previa en vivo")
+    val BILLBOARD = toggle("billboard", "Carrusel destacado", summary = "Imágenes destacadas que rotan sobre las filas")
+    val CONTINUE_WATCHING = toggle("continue_watching", "Seguir viendo", summary = "Desde tu cuenta de Nuvio")
+    val GENRE = Option("genre", "Filtro de género", listOf("all" to "Todos los géneros", "Action" to "Acción", "Comedy" to "Comedia", "Drama" to "Drama",
+        "Thriller" to "Suspenso", "Horror" to "Terror", "Romance" to "Romance", "Sci-Fi" to "Ciencia ficción", "Animation" to "Animación",
+        "Crime" to "Crimen", "Family" to "Familiar"), "all", summary = "Solo en filas cuyo complemento lo permita")
+    val RATING_BADGE = toggle("rating_badge", "Calificación en pósteres", summary = "Desactívala si los pósteres ya muestran una calificación")
+    val TYPE_TABS = toggle("type_tabs", "Pestañas de películas y series", summary = "Inicio ya muestra ambas")
+    val POSTER_SIZE = Option("poster_size", "Tamaño del póster", listOf("small" to "Pequeño", "medium" to "Mediano", "large" to "Grande"), "medium")
+    val BACKDROP = toggle("backdrop", "Fondo de la ficha", summary = "Muestra el arte del título seleccionado detrás de las filas")
+    val TOP_TEN = Option("top_ten_from", "Fila de los 10 más populares",
+        listOf("mine" to "De mi primera fila", "world" to "Mundial (mayormente en inglés)", "off" to "Desactivado"), "mine",
+        summary = "Fila numerada con las diez películas más populares")
+    val TRAILERS = toggle("trailers", "Reproducir tráileres", summary = "Se reproducen al mantener un póster seleccionado")
+    val TRAILER_DELAY = Option("trailer_delay", "Iniciar el tráiler tras",
+        listOf("1" to "1 segundo", "2" to "2 segundos", "3" to "3 segundos", "5" to "5 segundos", "8" to "8 segundos"), "2",
+        summary = "Tiempo de selección antes de iniciar el tráiler")
+    val TRAILER_SOUND = toggle("trailer_sound_v2", "Sonido del tráiler", summary = "Desactivado reproduce los tráileres sin sonido")
 
 
     private fun prefs(context: Context) = context.getSharedPreferences("flix_settings", Context.MODE_PRIVATE)

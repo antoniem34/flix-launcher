@@ -188,7 +188,7 @@ class SettingsActivity : Activity() {
 
     // ---- Top bar ----
 
-    /** The FLIX wordmark and "Settings" on the left; the search box on the right. */
+    /** The FLIX wordmark and "Ajustes" on the left; the search box on the right. */
     private fun topBar(): View {
         val brand = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -202,7 +202,7 @@ class SettingsActivity : Activity() {
             })
             addView(View(context).apply { setBackgroundColor(0x33FFFFFF) },
                 LinearLayout.LayoutParams(px(1), px(22)).apply { marginStart = px(16); marginEnd = px(16) })
-            addView(text("Settings", 20f, alpha = 0.9f).apply { typeface = Typeface.create("sans-serif-light", Typeface.NORMAL) })
+            addView(text("Ajustes", 20f, alpha = 0.9f).apply { typeface = Typeface.create("sans-serif-light", Typeface.NORMAL) })
         }
         return FrameLayout(this).apply {
             setPadding(px(54), px(26), px(48), px(14))
@@ -220,7 +220,7 @@ class SettingsActivity : Activity() {
     private fun searchBox(): View {
         val icon = ImageView(this).apply { setImageResource(R.drawable.ic_o_search); setColorFilter(0xB3FFFFFF.toInt()) }
         search = EditText(this).apply {
-            hint = "Search settings"
+            hint = "Buscar ajustes"
             textSize = 15f
             setTextColor(Color.WHITE)
             setHintTextColor(0x8CFFFFFF.toInt())
@@ -240,7 +240,7 @@ class SettingsActivity : Activity() {
                 }
             })
         }
-        typeHint = text("OK to type", 11f, alpha = 0.55f)
+        typeHint = text("OK para escribir", 11f, alpha = 0.55f)
         val bg = GradientDrawable().apply { cornerRadius = 24 * dp; setColor(0x14FFFFFF); setStroke(px(1), 0x24FFFFFF) }
         searchBox = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -352,82 +352,82 @@ class SettingsActivity : Activity() {
             add(Entry(s, group, "$title $sub $extra ${SECTIONS[s].title}") { actionRow(title, sub, icon, onClick) })
 
         // Home screen
-        act(0, "When you press Home", "Home button", HomeButton.describe(this@SettingsActivity), R.drawable.ic_s_home,
+        act(0, "Al pulsar Inicio", "Botón Inicio", HomeButton.describe(this@SettingsActivity), R.drawable.ic_s_home,
             "home key button remote accessibility default launcher blocked not working fix") {
-            if (HomeButton.works(this@SettingsActivity)) toast("Home already opens Flix") else HomeButton.fix(this@SettingsActivity)
+            if (HomeButton.works(this@SettingsActivity)) toast("Inicio ya abre Flix") else HomeButton.fix(this@SettingsActivity)
         }
-        opt(0, "When you press Home", FlixSettings.HOME_FOCUS, R.drawable.ic_o_resume, "home button start focus resume continue watching apps first")
-        add(Entry(0, "Look", "theme colour color style glass cinema midnight minimal dark apple netflix look") { themePicker() })
-        opt(0, "App tiles", FlixSettings.ICON_SHAPE, R.drawable.ic_o_shape, "icons round square")
-        opt(0, "App tiles", FlixSettings.ICON_SIZE, R.drawable.ic_o_size, "icons big bigger smaller")
-        opt(0, "App tiles", FlixSettings.LABELS, R.drawable.ic_o_text, "names titles text")
-        opt(0, "App tiles", FlixSettings.GLOW, R.drawable.ic_o_glow, "light colour color shine")
-        opt(0, "App tiles", FlixSettings.MOTION, R.drawable.ic_o_motion, "animation bounce speed")
-        opt(0, "All apps", FlixSettings.ALL_APPS, R.drawable.ic_o_grid, "every app list")
-        opt(0, "All apps", FlixSettings.ALL_APPS_TILE, R.drawable.ic_o_tile_plus, "every app button")
-        act(0, "All apps", "Hidden apps", "Bring back apps you hid from All apps", R.drawable.ic_o_eye, "unhide restore show") { showHiddenApps() }
-        act(0, "All apps", "Reset favourites order", "Nuvio, TiviMate and YouTube first", R.drawable.ic_o_reset, "sort order arrange") {
-            repo.resetOrder(); applyToHome(appsOnly = true); toast("Favourites order reset")
+        opt(0, "Al pulsar Inicio", FlixSettings.HOME_FOCUS, R.drawable.ic_o_resume, "home button start focus resume continue watching apps first")
+        add(Entry(0, "Apariencia", "theme colour color style glass cinema midnight minimal dark apple netflix look") { themePicker() })
+        opt(0, "Iconos de apps", FlixSettings.ICON_SHAPE, R.drawable.ic_o_shape, "icons round square")
+        opt(0, "Iconos de apps", FlixSettings.ICON_SIZE, R.drawable.ic_o_size, "icons big bigger smaller")
+        opt(0, "Iconos de apps", FlixSettings.LABELS, R.drawable.ic_o_text, "names titles text")
+        opt(0, "Iconos de apps", FlixSettings.GLOW, R.drawable.ic_o_glow, "light colour color shine")
+        opt(0, "Iconos de apps", FlixSettings.MOTION, R.drawable.ic_o_motion, "animation bounce speed")
+        opt(0, "Todas las apps", FlixSettings.ALL_APPS, R.drawable.ic_o_grid, "every app list")
+        opt(0, "Todas las apps", FlixSettings.ALL_APPS_TILE, R.drawable.ic_o_tile_plus, "every app button")
+        act(0, "Todas las apps", "Apps ocultas", "Recupera las apps ocultas de la lista", R.drawable.ic_o_eye, "unhide restore show") { showHiddenApps() }
+        act(0, "Todas las apps", "Restablecer orden de favoritos", "Nuvio, TiviMate y YouTube primero", R.drawable.ic_o_reset, "sort order arrange") {
+            repo.resetOrder(); applyToHome(appsOnly = true); toast("Orden de favoritos restablecido")
         }
 
         // Movies & shows
-        add(Entry(1, null, "Nuvio account sign in login profile continue watching") { nuvioCard() })
+        add(Entry(1, null, "Nuvio account sign in login profile continue watching cuenta sesión acceso perfil seguir viendo") { nuvioCard() })
         NuvioAccount.profile(this@SettingsActivity)?.takeIf { NuvioAccount.isSignedIn(this@SettingsActivity) }?.let { profile ->
-            add(Entry(1, null, "profile picture avatar face image photo cartoon character") { pictureRow(profile) })
+            add(Entry(1, null, "profile picture avatar face image photo cartoon character foto perfil imagen avatar rostro personaje") { pictureRow(profile) })
         }
-        add(Entry(1, null, "Addons rows catalogues order choose") { rowsCard() })
-        opt(1, "On the home screen", FlixSettings.SUGGESTIONS, R.drawable.ic_o_rows, "films movies series")
+        add(Entry(1, null, "Addons rows catalogues order choose complementos filas catálogos orden elegir") { rowsCard() })
+        opt(1, "En la pantalla de inicio", FlixSettings.SUGGESTIONS, R.drawable.ic_o_rows, "films movies series")
         opt(1, "Sinopsis", FlixSettings.SYNOPSIS_LANGUAGE, R.drawable.ic_o_rows, "idioma español latino mexico language synopsis description")
-        if (LiveTv.installed(this@SettingsActivity)) opt(1, "On the home screen", FlixSettings.LIVE_TV, R.drawable.ic_o_tv, "live tv channels iptv nuvio+iptv guide epg")
-        opt(1, "On the home screen", FlixSettings.BILLBOARD, R.drawable.ic_o_layers, "carousel billboard banner featured hero slideshow poster")
-        opt(1, "On the home screen", FlixSettings.CONTINUE_WATCHING, R.drawable.ic_o_resume, "resume progress")
-        opt(1, "On the home screen", FlixSettings.TOP_TEN, R.drawable.ic_o_rank, "top 10 english popular tamil")
-        opt(1, "On the home screen", FlixSettings.GENRE, R.drawable.ic_o_filter, "category type")
-        opt(1, "Previews", FlixSettings.TRAILERS, R.drawable.ic_o_play, "video preview autoplay")
-        opt(1, "Previews", FlixSettings.TRAILER_DELAY, R.drawable.ic_o_clock, "trailer wait delay time seconds slow fast")
-        opt(1, "Previews", FlixSettings.TRAILER_SOUND, R.drawable.ic_o_sound, "audio volume mute loud")
-        opt(1, "Previews", FlixSettings.BACKDROP, R.drawable.ic_o_image, "artwork background picture")
-        opt(1, "Look", FlixSettings.POSTER_SIZE, R.drawable.ic_o_poster, "big bigger smaller tiles")
-        opt(1, "Look", FlixSettings.RATING_BADGE, R.drawable.ic_o_rank, "imdb score stars rpdb badge")
-        opt(1, "Look", FlixSettings.TYPE_TABS, R.drawable.ic_o_rows, "menu top bar movies shows series hide")
-        act(1, "Look", "Show hidden titles", "Bring back titles you hid from rows", R.drawable.ic_o_eye, "unhide restore films movies") {
-            Catalog.clearHiddenTitles(this@SettingsActivity); applyToHome(); toast("Hidden titles are back")
+        if (LiveTv.installed(this@SettingsActivity)) opt(1, "En la pantalla de inicio", FlixSettings.LIVE_TV, R.drawable.ic_o_tv, "live tv channels iptv nuvio+iptv guide epg")
+        opt(1, "En la pantalla de inicio", FlixSettings.BILLBOARD, R.drawable.ic_o_layers, "carousel billboard banner featured hero slideshow poster")
+        opt(1, "En la pantalla de inicio", FlixSettings.CONTINUE_WATCHING, R.drawable.ic_o_resume, "resume progress")
+        opt(1, "En la pantalla de inicio", FlixSettings.TOP_TEN, R.drawable.ic_o_rank, "top 10 english popular tamil")
+        opt(1, "En la pantalla de inicio", FlixSettings.GENRE, R.drawable.ic_o_filter, "category type")
+        opt(1, "Vistas previas", FlixSettings.TRAILERS, R.drawable.ic_o_play, "video preview autoplay")
+        opt(1, "Vistas previas", FlixSettings.TRAILER_DELAY, R.drawable.ic_o_clock, "trailer wait delay time seconds slow fast")
+        opt(1, "Vistas previas", FlixSettings.TRAILER_SOUND, R.drawable.ic_o_sound, "audio volume mute loud")
+        opt(1, "Vistas previas", FlixSettings.BACKDROP, R.drawable.ic_o_image, "artwork background picture")
+        opt(1, "Apariencia", FlixSettings.POSTER_SIZE, R.drawable.ic_o_poster, "big bigger smaller tiles")
+        opt(1, "Apariencia", FlixSettings.RATING_BADGE, R.drawable.ic_o_rank, "imdb score stars rpdb badge")
+        opt(1, "Apariencia", FlixSettings.TYPE_TABS, R.drawable.ic_o_rows, "menu top bar movies shows series hide")
+        act(1, "Apariencia", "Mostrar títulos ocultos", "Recupera los títulos ocultos de las filas", R.drawable.ic_o_eye, "unhide restore films movies") {
+            Catalog.clearHiddenTitles(this@SettingsActivity); applyToHome(); toast("Se restauraron los títulos ocultos")
         }
 
         // Clock & weather
-        opt(2, "Clock", FlixSettings.CLOCK_STYLE, R.drawable.ic_o_text, "time font look")
-        opt(2, "Clock", FlixSettings.CLOCK_FORMAT, R.drawable.ic_o_clock, "time am pm 24 12 hour")
-        opt(2, "Clock", FlixSettings.GREETING, R.drawable.ic_o_chat, "hello good morning evening")
-        opt(2, "Clock", FlixSettings.DATE, R.drawable.ic_o_calendar, "day month today")
-        opt(2, "Weather", FlixSettings.WEATHER, R.drawable.ic_o_sun, "forecast rain temperature")
+        opt(2, "Reloj", FlixSettings.CLOCK_STYLE, R.drawable.ic_o_text, "time font look")
+        opt(2, "Reloj", FlixSettings.CLOCK_FORMAT, R.drawable.ic_o_clock, "time am pm 24 12 hour")
+        opt(2, "Reloj", FlixSettings.GREETING, R.drawable.ic_o_chat, "hello good morning evening")
+        opt(2, "Reloj", FlixSettings.DATE, R.drawable.ic_o_calendar, "day month today")
+        opt(2, "Clima", FlixSettings.WEATHER, R.drawable.ic_o_sun, "forecast rain temperature")
         val city = FlixSettings.weatherCity(this@SettingsActivity)
-        act(2, "Weather", "Weather city", city.ifEmpty { "Automatic, from your internet connection" },
+        act(2, "Clima", "Ciudad del clima", city.ifEmpty { "Automática, según tu conexión a internet" },
             R.drawable.ic_o_pin, "location place town city weather wrong") { askWeatherCity() }
-        opt(2, "Weather", FlixSettings.UNITS, R.drawable.ic_o_thermo, "celsius fahrenheit degrees")
+        opt(2, "Clima", FlixSettings.UNITS, R.drawable.ic_o_thermo, "celsius fahrenheit degrees")
 
         // Wallpaper
         for ((group, words) in listOf(
-            "Photos" to "background wallpaper photo picture nature city cities bing scenery",
-            "Aerial video" to "background wallpaper video aerial apple fire tv ocean sea space earth art landscapes cities scenery",
-            "Plain" to "background wallpaper plain dark black none",
+            "Fotos" to "background wallpaper photo picture nature city cities bing scenery fondo fotos naturaleza ciudades fauna playas invierno desiertos flores cielo nocturno castillos templos",
+            "Videos aéreos" to "background wallpaper video aerial apple fire tv ocean sea space earth art landscapes cities scenery fondo videos aéreos océanos mar espacio tierra arte paisajes ciudades nieve auroras chimenea videojuegos",
+            "Sencillo" to "background wallpaper plain dark black none fondo sencillo oscuro negro ninguno",
         )) add(Entry(3, group, words, rows = { wallpaperRows(group) }))
-        opt(3, "Picture", FlixSettings.DIM, R.drawable.ic_o_contrast, "dark bright brightness")
-        opt(3, "Picture", FlixSettings.SHUFFLE, R.drawable.ic_o_shuffle, "random change")
-        opt(3, "Picture", FlixSettings.SCENE_NAME, R.drawable.ic_o_pin, "caption place location title")
-        opt(3, "When the TV is idle", FlixSettings.IDLE, R.drawable.ic_o_moon, "screensaver sleep inactive timeout")
+        opt(3, "Imagen", FlixSettings.DIM, R.drawable.ic_o_contrast, "dark bright brightness")
+        opt(3, "Imagen", FlixSettings.SHUFFLE, R.drawable.ic_o_shuffle, "random change")
+        opt(3, "Imagen", FlixSettings.SCENE_NAME, R.drawable.ic_o_pin, "caption place location title")
+        opt(3, "Cuando no usas la TV", FlixSettings.IDLE, R.drawable.ic_o_moon, "screensaver sleep inactive timeout protector pantalla salvapantallas inactividad espera")
 
         // Backup & restore
-        act(4, "Backup & restore", "Back up settings", backupSummary(), R.drawable.ic_o_layers, "backup save export copy keep") { backUp() }
-        act(4, "Backup & restore", "Restore settings", "Bring back settings from a backup", R.drawable.ic_o_reset, "restore import load recover backup") { pickBackup() }
+        act(4, "Respaldo y restauración", "Respaldar ajustes", backupSummary(), R.drawable.ic_o_layers, "backup save export copy keep") { backUp() }
+        act(4, "Respaldo y restauración", "Restaurar ajustes", "Recupera los ajustes de un respaldo", R.drawable.ic_o_reset, "restore import load recover backup") { pickBackup() }
 
         // About
-        add(Entry(4, null, "about version app flix launcher") { infoRow("Flix Launcher ${version()}", "A home screen made for watching. Free, open source, no ads", R.drawable.ic_s_info) })
-        add(Entry(4, "Updates", "update version latino") {
+        add(Entry(4, null, "about version app flix launcher acerca versión aplicación") { infoRow("Flix Latino ${version()}", "Un inicio para disfrutar. Gratis, de código abierto y sin anuncios", R.drawable.ic_s_info) })
+        add(Entry(4, "Actualizaciones", "update version latino") {
             infoRow("Flix Latino", "Versión personalizada. Actualizaciones mediante APK del fork.", R.drawable.ic_o_reset)
         })
-        act(4, "Help", "Report a problem", "Scan a code with your phone to send a bug report", R.drawable.ic_o_phone,
+        act(4, "Ayuda", "Informar un problema", "Escanea el código con tu teléfono para informar un error", R.drawable.ic_o_phone,
             "bug issue problem help feedback broken crash support logs") { Report.show(this@SettingsActivity) }
-        add(Entry(4, null, "about tv device model") { infoRow("This TV", "${Build.MANUFACTURER.replaceFirstChar { it.uppercase() }} ${Build.MODEL} · Android ${Build.VERSION.RELEASE}", R.drawable.ic_o_tv) })
+        add(Entry(4, null, "about tv device model dispositivo modelo televisión") { infoRow("Esta TV", "${Build.MANUFACTURER.replaceFirstChar { it.uppercase() }} ${Build.MODEL} · Android ${Build.VERSION.RELEASE}", R.drawable.ic_o_tv) })
     }
 
     private fun version() = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull() ?: "1.0"
@@ -458,19 +458,19 @@ class SettingsActivity : Activity() {
     private fun showResults(q: String, animate: Boolean = true) {
         checkMarks.clear()
         content.removeAllViews()
-        val terms = q.lowercase().split(Regex("\\s+")).filter { it.isNotEmpty() }
-        val found = catalogue().filter { e -> val w = e.words.lowercase(); terms.all { it in w } }
+        val terms = SpanishText.searchKey(q).split(Regex("\\s+")).filter { it.isNotEmpty() }
+        val found = catalogue().filter { e -> val w = SpanishText.searchKey(e.words); terms.all { it in w } }
         if (found.isEmpty()) {
             content.addView(LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 gravity = Gravity.CENTER_HORIZONTAL
                 setPadding(0, px(70), 0, 0)
                 addView(ImageView(context).apply { setImageResource(R.drawable.ic_o_search); alpha = 0.3f }, LinearLayout.LayoutParams(px(44), px(44)))
-                addView(text("Nothing matches “$q”", 18f, bold = true).apply { gravity = Gravity.CENTER; setPadding(0, px(18), 0, px(6)) })
-                addView(text("Try words like trailer, clock, sound or wallpaper", 13f, alpha = 0.5f).apply { gravity = Gravity.CENTER })
+                addView(text("No hay resultados para “$q”", 18f, bold = true).apply { gravity = Gravity.CENTER; setPadding(0, px(18), 0, px(6)) })
+                addView(text("Prueba con tráiler, reloj, sonido o fondo", 13f, alpha = 0.5f).apply { gravity = Gravity.CENTER })
             }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         } else {
-            header("Results", if (found.size == 1) "1 setting matches “$q”" else "${found.size} settings match “$q”")
+            header("Resultados", if (found.size == 1) "1 ajuste coincide con “$q”" else "${found.size} ajustes coinciden con “$q”")
             found.groupBy { it.section }.forEach { (s, entries) -> group(SECTIONS[s].title, entries.flatMap { it.views() }) }
         }
         if (animate) rise(stagger = false)
@@ -623,7 +623,7 @@ class SettingsActivity : Activity() {
             gravity = Gravity.CENTER_VERTICAL
             val (tile, _) = iconTile(R.drawable.ic_o_contrast)
             addView(tile, LinearLayout.LayoutParams(px(38), px(38)).apply { marginEnd = px(16) })
-            addView(textBlock(option.title, "How the home screen looks. It changes when you close Settings"))
+            addView(textBlock(option.title, "Aspecto del inicio. Se aplica al cerrar los ajustes"))
         })
         val strip = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -655,7 +655,7 @@ class SettingsActivity : Activity() {
                 val focused = card.isFocused
                 ring.setColor(if (focused) 0x24FFFFFF else Color.TRANSPARENT)
                 ring.setStroke(px(2), when { focused -> Color.WHITE; chosen -> 0x66FFFFFF; else -> Color.TRANSPARENT })
-                state.text = if (chosen) "✓ In use" else ""
+                state.text = if (chosen) "✓ En uso" else ""
                 name.alpha = if (chosen || focused) 1f else 0.7f
             }
             marks += id to { _: Boolean -> paint() }
@@ -714,49 +714,49 @@ class SettingsActivity : Activity() {
     private class Wall(val title: String, val about: String, val preview: Int?, val from: Int, val to: Int)
 
     private val WALLS = mapOf(
-        "nature" to Wall("Nature", "A new Bing photo every minute: forests, peaks and coasts", R.drawable.wall_nature, 0xFF1F5130.toInt(), 0xFF0B1F14.toInt()),
-        "cities" to Wall("Cities", "Skylines and landmarks from the same Bing archive", R.drawable.wall_cities, 0xFF5A3A1A.toInt(), 0xFF171019.toInt()),
-        "video" to Wall("Everything", "All 270 aerial films, shuffled", R.drawable.wall_video, 0xFF8A0B12.toInt(), 0xFF1A0507.toInt()),
-        "v_nature" to Wall("Landscapes", "Mountains, deserts and islands from above", R.drawable.wall_v_nature, 0xFF3E5A22.toInt(), 0xFF121A0B.toInt()),
-        "v_sea" to Wall("Oceans", "Waves, reefs and dolphins", R.drawable.wall_v_sea, 0xFF0E4E68.toInt(), 0xFF06141E.toInt()),
-        "v_city" to Wall("Cities", "Flying over Dubai, Hong Kong and San Francisco", R.drawable.wall_v_city, 0xFF2B3566.toInt(), 0xFF0B0E1F.toInt()),
-        "v_space" to Wall("Earth from space", "Filmed from the International Space Station", R.drawable.wall_v_space, 0xFF1A1F4A.toInt(), 0xFF020308.toInt()),
-        "v_art" to Wall("Colour art", "Slow abstract colour from Fire TV", R.drawable.wall_v_art, 0xFF8E2A7A.toInt(), 0xFF1E0A4A.toInt()),
-        "wildlife" to Wall("Wildlife", "Animals in the wild, from foxes to whales", R.drawable.wall_wildlife, 0xFF6B4A1E.toInt(), 0xFF1A1206.toInt()),
-        "beaches" to Wall("Beaches & islands", "Coves, atolls and turquoise water", R.drawable.wall_beaches, 0xFF0F6B78.toInt(), 0xFF051A1F.toInt()),
-        "winter" to Wall("Winter", "Snow, ice and frozen lakes", R.drawable.wall_winter, 0xFF5E7A99.toInt(), 0xFF0E1622.toInt()),
-        "deserts" to Wall("Deserts & canyons", "Dunes, mesas and red rock", R.drawable.wall_deserts, 0xFF9A4E1E.toInt(), 0xFF1F0E05.toInt()),
-        "flowers" to Wall("Flowers", "Tulip fields, lavender and blossom", R.drawable.wall_flowers, 0xFF8E3A6B.toInt(), 0xFF1E0A16.toInt()),
-        "night" to Wall("Night sky", "Auroras, the Milky Way and moonrise", R.drawable.wall_night, 0xFF2A2F6E.toInt(), 0xFF05060F.toInt()),
-        "castles" to Wall("Castles & temples", "Palaces, cathedrals and ancient temples", R.drawable.wall_castles, 0xFF6E5A2E.toInt(), 0xFF171207.toInt()),
-        "v_underwater" to Wall("Underwater", "Reefs, kelp forests, jellyfish and dolphins", R.drawable.wall_v_underwater, 0xFF0A4F7A.toInt(), 0xFF02121F.toInt()),
-        "v_beaches" to Wall("Beaches", "Coasts and clear water from above", R.drawable.wall_v_beaches, 0xFF1A7A84.toInt(), 0xFF061A1D.toInt()),
-        "v_wildlife" to Wall("Wildlife", "Elephants, savannah herds and sea life", R.drawable.wall_v_wildlife, 0xFF6A5A22.toInt(), 0xFF171306.toInt()),
-        "v_snow" to Wall("Snow & aurora", "Iceland, Greenland, the Himalayas and northern lights", R.drawable.wall_v_snow, 0xFF3E6E8E.toInt(), 0xFF07121A.toInt()),
-        "v_deserts" to Wall("Deserts", "Dunes, canyons and Monument Valley", R.drawable.wall_v_deserts, 0xFF9A5A22.toInt(), 0xFF1F1006.toInt()),
-        "v_nightsky" to Wall("Night sky", "Stars, the galaxy and Earth at night", R.drawable.wall_v_nightsky, 0xFF2A225E.toInt(), 0xFF040312.toInt()),
-        "v_fireplace" to Wall("Fireplace", "A warm fire crackling on your TV", R.drawable.wall_v_fireplace, 0xFFA03A12.toInt(), 0xFF200A04.toInt()),
-        "v_calm" to Wall("Calm colour", "Slow gradients and light leaks to relax to", R.drawable.wall_v_calm, 0xFF7A3A8E.toInt(), 0xFF180A22.toInt()),
-        "films" to Wall("Blockbusters", "Backdrops of the most popular films", R.drawable.wall_movies, 0xFF5A1414.toInt(), 0xFF140404.toInt()),
-        "films_scifi" to Wall("Sci-fi films", "Backdrops of the best-rated science fiction", R.drawable.wall_scifi, 0xFF5A1414.toInt(), 0xFF140404.toInt()),
-        "films_action" to Wall("Action films", "Backdrops of the best-rated action films", R.drawable.wall_movies, 0xFF5A1414.toInt(), 0xFF140404.toInt()),
-        "films_animation" to Wall("Animated films", "Backdrops of the best-rated animation", R.drawable.wall_movies, 0xFF5A1414.toInt(), 0xFF140404.toInt()),
-        "films_fantasy" to Wall("Fantasy films", "Backdrops of the best-rated fantasy", R.drawable.wall_castles, 0xFF5A1414.toInt(), 0xFF140404.toInt()),
-        "films_horror" to Wall("Horror films", "Backdrops of the best-rated horror", R.drawable.wall_night, 0xFF5A1414.toInt(), 0xFF140404.toInt()),
-        "v_films" to Wall("Open movies", "Sintel, Tears of Steel and Elephants Dream", R.drawable.wall_movies, 0xFF5A1414.toInt(), 0xFF140404.toInt()),
-        "scifi" to Wall("Sci-fi art", "Spaceships, alien worlds and cyberpunk cities", R.drawable.wall_scifi, 0xFF1A3A6E.toInt(), 0xFF050A18.toInt()),
-        "gaming" to Wall("Gaming art", "The best-loved game wallpapers", R.drawable.wall_gaming, 0xFF4A1A6E.toInt(), 0xFF0E0418.toInt()),
-        "v_scifi" to Wall("Deep space", "Hubble and Webb flying through nebulae and galaxies", R.drawable.wall_v_scifi, 0xFF2A1A5E.toInt(), 0xFF05030F.toInt()),
-        "v_gaming" to Wall("Game trailers", "Trailers for the biggest games, playing quietly", R.drawable.wall_v_gaming, 0xFF1E3A5A.toInt(), 0xFF050C16.toInt()),
-        "gradient" to Wall("Plain dark", "No picture at all; the lightest on the TV", null, 0xFF2A2A2E.toInt(), 0xFF0A0A0C.toInt()),
+        "nature" to Wall("Naturaleza", "Una foto de Bing cada minuto: bosques, montañas y costas", R.drawable.wall_nature, 0xFF1F5130.toInt(), 0xFF0B1F14.toInt()),
+        "cities" to Wall("Ciudades", "Ciudades y lugares del archivo de Bing", R.drawable.wall_cities, 0xFF5A3A1A.toInt(), 0xFF171019.toInt()),
+        "video" to Wall("Todos", "Los 270 videos aéreos en orden aleatorio", R.drawable.wall_video, 0xFF8A0B12.toInt(), 0xFF1A0507.toInt()),
+        "v_nature" to Wall("Paisajes", "Montañas, desiertos e islas desde el aire", R.drawable.wall_v_nature, 0xFF3E5A22.toInt(), 0xFF121A0B.toInt()),
+        "v_sea" to Wall("Océanos", "Olas, arrecifes y delfines", R.drawable.wall_v_sea, 0xFF0E4E68.toInt(), 0xFF06141E.toInt()),
+        "v_city" to Wall("Ciudades", "Sobrevolando Dubái, Hong Kong y San Francisco", R.drawable.wall_v_city, 0xFF2B3566.toInt(), 0xFF0B0E1F.toInt()),
+        "v_space" to Wall("La Tierra desde el espacio", "Grabados desde la Estación Espacial Internacional", R.drawable.wall_v_space, 0xFF1A1F4A.toInt(), 0xFF020308.toInt()),
+        "v_art" to Wall("Arte de color", "Colores abstractos y suaves de Fire TV", R.drawable.wall_v_art, 0xFF8E2A7A.toInt(), 0xFF1E0A4A.toInt()),
+        "wildlife" to Wall("Fauna", "Animales en libertad, desde zorros hasta ballenas", R.drawable.wall_wildlife, 0xFF6B4A1E.toInt(), 0xFF1A1206.toInt()),
+        "beaches" to Wall("Playas e islas", "Calas, atolones y aguas turquesas", R.drawable.wall_beaches, 0xFF0F6B78.toInt(), 0xFF051A1F.toInt()),
+        "winter" to Wall("Invierno", "Nieve, hielo y lagos congelados", R.drawable.wall_winter, 0xFF5E7A99.toInt(), 0xFF0E1622.toInt()),
+        "deserts" to Wall("Desiertos y cañones", "Dunas, mesetas y rocas rojizas", R.drawable.wall_deserts, 0xFF9A4E1E.toInt(), 0xFF1F0E05.toInt()),
+        "flowers" to Wall("Flores", "Campos de tulipanes, lavanda y flores", R.drawable.wall_flowers, 0xFF8E3A6B.toInt(), 0xFF1E0A16.toInt()),
+        "night" to Wall("Cielo nocturno", "Auroras, la Vía Láctea y la salida de la Luna", R.drawable.wall_night, 0xFF2A2F6E.toInt(), 0xFF05060F.toInt()),
+        "castles" to Wall("Castillos y templos", "Palacios, catedrales y templos antiguos", R.drawable.wall_castles, 0xFF6E5A2E.toInt(), 0xFF171207.toInt()),
+        "v_underwater" to Wall("Bajo el agua", "Arrecifes, bosques de algas, medusas y delfines", R.drawable.wall_v_underwater, 0xFF0A4F7A.toInt(), 0xFF02121F.toInt()),
+        "v_beaches" to Wall("Playas", "Costas y aguas cristalinas desde el aire", R.drawable.wall_v_beaches, 0xFF1A7A84.toInt(), 0xFF061A1D.toInt()),
+        "v_wildlife" to Wall("Fauna", "Elefantes, manadas de la sabana y vida marina", R.drawable.wall_v_wildlife, 0xFF6A5A22.toInt(), 0xFF171306.toInt()),
+        "v_snow" to Wall("Nieve y auroras", "Islandia, Groenlandia, el Himalaya y auroras boreales", R.drawable.wall_v_snow, 0xFF3E6E8E.toInt(), 0xFF07121A.toInt()),
+        "v_deserts" to Wall("Desiertos", "Dunas, cañones y Monument Valley", R.drawable.wall_v_deserts, 0xFF9A5A22.toInt(), 0xFF1F1006.toInt()),
+        "v_nightsky" to Wall("Cielo nocturno", "Estrellas, galaxias y la Tierra de noche", R.drawable.wall_v_nightsky, 0xFF2A225E.toInt(), 0xFF040312.toInt()),
+        "v_fireplace" to Wall("Chimenea", "Una cálida chimenea en tu TV", R.drawable.wall_v_fireplace, 0xFFA03A12.toInt(), 0xFF200A04.toInt()),
+        "v_calm" to Wall("Colores relajantes", "Colores y luces suaves para relajarte", R.drawable.wall_v_calm, 0xFF7A3A8E.toInt(), 0xFF180A22.toInt()),
+        "films" to Wall("Éxitos de cine", "Fondos de las películas más populares", R.drawable.wall_movies, 0xFF5A1414.toInt(), 0xFF140404.toInt()),
+        "films_scifi" to Wall("Ciencia ficción", "Fondos de ciencia ficción mejor valorada", R.drawable.wall_scifi, 0xFF5A1414.toInt(), 0xFF140404.toInt()),
+        "films_action" to Wall("Películas de acción", "Fondos de películas de acción mejor valoradas", R.drawable.wall_movies, 0xFF5A1414.toInt(), 0xFF140404.toInt()),
+        "films_animation" to Wall("Películas animadas", "Fondos de animación mejor valorada", R.drawable.wall_movies, 0xFF5A1414.toInt(), 0xFF140404.toInt()),
+        "films_fantasy" to Wall("Películas de fantasía", "Fondos de fantasía mejor valorada", R.drawable.wall_castles, 0xFF5A1414.toInt(), 0xFF140404.toInt()),
+        "films_horror" to Wall("Películas de terror", "Fondos de terror mejor valorado", R.drawable.wall_night, 0xFF5A1414.toInt(), 0xFF140404.toInt()),
+        "v_films" to Wall("Cine libre", "Sintel, Tears of Steel y Elephants Dream", R.drawable.wall_movies, 0xFF5A1414.toInt(), 0xFF140404.toInt()),
+        "scifi" to Wall("Arte de ciencia ficción", "Naves, mundos alienígenas y ciudades ciberpunk", R.drawable.wall_scifi, 0xFF1A3A6E.toInt(), 0xFF050A18.toInt()),
+        "gaming" to Wall("Arte de videojuegos", "Fondos de videojuegos favoritos", R.drawable.wall_gaming, 0xFF4A1A6E.toInt(), 0xFF0E0418.toInt()),
+        "v_scifi" to Wall("Espacio profundo", "Hubble y Webb recorren nebulosas y galaxias", R.drawable.wall_v_scifi, 0xFF2A1A5E.toInt(), 0xFF05030F.toInt()),
+        "v_gaming" to Wall("Tráileres de videojuegos", "Tráileres de grandes videojuegos, con sonido suave", R.drawable.wall_v_gaming, 0xFF1E3A5A.toInt(), 0xFF050C16.toInt()),
+        "gradient" to Wall("Fondo oscuro", "Sin imagen; la opción más ligera para la TV", null, 0xFF2A2A2E.toInt(), 0xFF0A0A0C.toInt()),
     )
 
     /** The backgrounds as a list in three groups, each row with its preview and a check on the one in use. */
     private fun wallpaperRows(group: String): List<View> {
         val option = FlixSettings.WALLPAPER
         val ids = when (group) {
-            "Photos" -> listOf("films", "films_scifi", "films_action", "films_animation", "films_fantasy", "films_horror", "nature", "cities", "wildlife", "beaches", "winter", "deserts", "flowers", "night", "castles", "scifi", "gaming")
-            "Aerial video" -> listOf("video", "v_nature", "v_sea", "v_underwater", "v_beaches", "v_wildlife", "v_snow",
+            "Fotos" -> listOf("films", "films_scifi", "films_action", "films_animation", "films_fantasy", "films_horror", "nature", "cities", "wildlife", "beaches", "winter", "deserts", "flowers", "night", "castles", "scifi", "gaming")
+            "Videos aéreos" -> listOf("video", "v_nature", "v_sea", "v_underwater", "v_beaches", "v_wildlife", "v_snow",
                 "v_deserts", "v_city", "v_space", "v_scifi", "v_nightsky", "v_gaming", "v_films", "v_fireplace", "v_calm", "v_art")
             else -> listOf("gradient")
         }
@@ -815,8 +815,8 @@ class SettingsActivity : Activity() {
         return heroRow(
             art = art,
             title = "Nuvio",
-            subtitle = if (signedIn) "Continue watching from “${profile ?: "?"}”" else "Sign in to bring Continue watching here",
-            badge = if (signedIn) "Connected" else "Sign in",
+            subtitle = if (signedIn) "Seguir viendo de “${profile ?: "?"}”" else "Inicia sesión para mostrar Seguir viendo",
+            badge = if (signedIn) "Conectado" else "Iniciar sesión",
             badgeColor = if (signedIn) 0xFF16A34A.toInt() else RED,
         ) { open(NuvioLoginActivity::class.java) }
     }
@@ -826,7 +826,7 @@ class SettingsActivity : Activity() {
         val face = ImageView(this).also { ProfilePicture.into(it, profile) }
         val row = rowShell().apply { setPadding(px(12), px(12), px(16), px(12)) }
         row.addView(face, LinearLayout.LayoutParams(px(44), px(44)))
-        row.addView(textBlock("Profile picture", "The face shown for “${profile.name.ifBlank { "this profile" }}”"),
+        row.addView(textBlock("Foto de perfil", "Imagen de “${profile.name.ifBlank { "este perfil" }}”"),
             LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = px(16) })
         row.addView(chevron())
         row.setOnFocusChangeListener { v, has -> focusRow(v, has) }
@@ -855,7 +855,7 @@ class SettingsActivity : Activity() {
                     ProfilePicture.set(this@SettingsActivity, profile, i)
                     dialog.dismiss()
                     applyToHome(); refresh(animate = false)
-                    content.post { focusRowTitled("Profile picture") }
+                    content.post { focusRowTitled("Foto de perfil") }
                 }
             }
             ProfilePicture.circle(face)
@@ -876,8 +876,8 @@ class SettingsActivity : Activity() {
             clipChildren = false
             background = GradientDrawable().apply { cornerRadius = 22 * dp; setColor(0xF2161A22.toInt()); setStroke(px(1), 0x1FFFFFFF) }
             setPadding(px(24), px(20), px(24), px(20))
-            addView(text("Choose a picture", 22f, bold = true))
-            addView(text("For “${profile.name.ifBlank { "this profile" }}”", 13f, alpha = 0.55f).apply { setPadding(0, px(4), 0, px(14)) })
+            addView(text("Elige una imagen", 22f, bold = true))
+            addView(text("Para “${profile.name.ifBlank { "este perfil" }}”", 13f, alpha = 0.55f).apply { setPadding(0, px(4), 0, px(14)) })
             addView(grid)
         }
         dialog.setContentView(panel)
@@ -896,9 +896,9 @@ class SettingsActivity : Activity() {
         return heroRow(
             art = tile,
             tile = bg,
-            title = "Addons & rows",
-            subtitle = "$addons ${if (addons == 1) "addon" else "addons"} · choose and order what appears",
-            badge = "$shown on home",
+            title = "Complementos y filas",
+            subtitle = "$addons ${if (addons == 1) "complemento" else "complementos"} · elige y ordena lo que aparece",
+            badge = "$shown en inicio",
             badgeColor = 0x2EFFFFFF,
         ) { open(RowsActivity::class.java) }
     }
@@ -1043,7 +1043,7 @@ class SettingsActivity : Activity() {
         val notes = update.notes.lineSequence().map { it.trim() }.firstOrNull { it.startsWith("- ") || it.startsWith("* ") }
             ?.drop(2)?.let { Regex("""^\*\*(.+?):?\*\*""").find(it)?.groupValues?.get(1) ?: it.replace("**", "") }
             ?.trimEnd(':', '.')?.let { if (it.length > 90) it.take(88).trimEnd() + "…" else it }
-            ?.let { "New: $it" }
+            ?.let { "Nuevo: $it" }
         val bg = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(0x40E50914, 0x14E50914)).apply {
             cornerRadius = 16 * dp; setStroke(px(1), 0x55E50914)
         }
@@ -1057,9 +1057,9 @@ class SettingsActivity : Activity() {
                 background = GradientDrawable().apply { cornerRadius = 12 * dp; setColor(RED) }
                 addView(ImageView(context).apply { setImageResource(R.drawable.ic_o_reset) }, FrameLayout.LayoutParams(px(22), px(22), Gravity.CENTER))
             }, LinearLayout.LayoutParams(px(44), px(44)).apply { marginEnd = px(16) })
-            addView(textBlock("Flix ${update.version} is ready", notes ?: "Press OK to install. Flix reopens by itself in a few seconds."),
+            addView(textBlock("Flix ${update.version} está listo", notes ?: "Pulsa OK para instalar. Flix se abrirá en unos segundos."),
                 LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-            addView(text("Install", 14f, bold = true).apply {
+            addView(text("Instalar", 14f, bold = true).apply {
                 setTextColor(Color.BLACK)
                 background = GradientDrawable().apply { cornerRadius = 18 * dp; setColor(Color.WHITE) }
                 setPadding(px(18), px(8), px(18), px(8))
@@ -1075,59 +1075,59 @@ class SettingsActivity : Activity() {
 
     private fun updateNow() {
         if (!Updater.canInstall(this)) {
-            toast("Allow Flix Launcher to install apps, then come back")
+            toast("Permite que Flix Latino instale apps y vuelve aquí")
             Updater.askPermission(this)
             return
         }
-        Updater.ready(this)?.let { if (Updater.install(this)) toast("Updating to ${it.version}…"); return }
-        toast("Checking for updates…")
+        Updater.ready(this)?.let { if (Updater.install(this)) toast("Actualizando a ${it.version}…"); return }
+        toast("Buscando actualizaciones…")
         Thread {
             val found = runCatching { Updater.check(this, force = true) }
             runOnUiThread {
                 if (isDestroyed) return@runOnUiThread
                 found.onSuccess { r ->
-                    if (r == null) toast("Flix is up to date (${version()})")
-                    else { toast("Updating to ${r.version}…"); Updater.install(this) }
-                }.onFailure { toast("Couldn't check for updates") }
+                    if (r == null) toast("Flix está actualizado (${version()})")
+                    else { toast("Actualizando a ${r.version}…"); Updater.install(this) }
+                }.onFailure { toast("No se pudieron buscar actualizaciones") }
             }
         }.start()
     }
 
     // ---- Backup & restore ----
 
-    private val stamp = java.text.SimpleDateFormat("d MMM yyyy, HH:mm", java.util.Locale.getDefault())
+    private val stamp = java.text.SimpleDateFormat("d MMM yyyy, HH:mm", SpanishText.locale)
 
-    private fun backupSummary() = Backup.list(this).firstOrNull()?.let { "Last backup ${stamp.format(it.created)}" }
-        ?: "Everything except your Nuvio sign-in"
+    private fun backupSummary() = Backup.list(this).firstOrNull()?.let { "Último respaldo: ${stamp.format(it.created)}" }
+        ?: "Todo excepto tu sesión de Nuvio"
 
     private fun backUp() = Thread {
         val result = runCatching { Backup.save(this) }
         runOnUiThread {
             if (isDestroyed) return@runOnUiThread
             result.onSuccess {
-                toast("Backed up. A copy is also in Download/FlixLauncher")
+                toast("Respaldo guardado. Hay una copia en Download/FlixLauncher")
                 refresh(animate = false)
                 // The rebuilt list would otherwise hand focus to the search box at the top.
-                content.post { focusRowTitled("Back up settings") }
+                content.post { focusRowTitled("Respaldar ajustes") }
             }
-                .onFailure { toast(it.message ?: "Couldn't back up") }
+                .onFailure { toast(it.message ?: "No se pudo crear el respaldo") }
         }
     }.start()
 
     /** Lists backups newest first; picking one asks before replacing the current settings. */
     private fun pickBackup() {
         val backups = Backup.list(this)
-        if (backups.isEmpty()) return toast("No backups yet. Copy one into Android/data/$packageName/files/backups")
+        if (backups.isEmpty()) return toast("No hay respaldos. Copia uno en Android/data/$packageName/files/backups")
         val dialog = sheet()
         val list = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         backups.forEachIndexed { i, backup ->
             val row = sheetRow(R.drawable.ic_restore, stamp.format(backup.created), ago(backup.created.time) + " · " + size(backup.file.length()),
-                badge = if (i == 0) "Latest" else null) { dialog.dismiss(); confirmRestore(backup) }
+                badge = if (i == 0) "Más reciente" else null) { dialog.dismiss(); confirmRestore(backup) }
             list.addView(row, LinearLayout.LayoutParams(-1, -2).apply { if (i > 0) topMargin = px(8) })
         }
         val scroll = android.widget.ScrollView(this).apply { isVerticalScrollBarEnabled = false; addView(list) }
         // As tall as the backups need, up to about five rows; more scroll.
-        dialog.setContentView(sheetPanel(R.drawable.ic_restore, "Restore settings", "Pick a backup. You'll be asked before anything changes.", scroll,
+        dialog.setContentView(sheetPanel(R.drawable.ic_restore, "Restaurar ajustes", "Elige un respaldo. Podrás confirmar antes de aplicarlo.", scroll,
             maxListHeight = if (backups.size > 4) px(340) else -2))
         dialog.show()
         list.post { list.getChildAt(0)?.requestFocus() }
@@ -1140,23 +1140,23 @@ class SettingsActivity : Activity() {
             clipChildren = false; clipToPadding = false
             // Room for the focused button to grow without its edge being cut.
             setPadding(px(6), px(4), px(6), px(4))
-            val restore = sheetButton("Restore", primary = true) {
+            val restore = sheetButton("Restaurar", primary = true) {
                 dialog.dismiss()
                 Thread {
                     val result = runCatching { Backup.restore(this@SettingsActivity, backup) }
                     runOnUiThread {
                         if (isDestroyed) return@runOnUiThread
-                        result.onSuccess { applyToHome(); recreate(); toast("Settings restored") }
-                            .onFailure { toast(it.message ?: "Couldn't restore that backup") }
+                        result.onSuccess { applyToHome(); recreate(); toast("Ajustes restaurados") }
+                            .onFailure { toast(it.message ?: "No se pudo restaurar el respaldo") }
                     }
                 }.start()
             }
             addView(restore)
-            addView(sheetButton("Cancel", primary = false) { dialog.dismiss() }, LinearLayout.LayoutParams(-2, -2).apply { marginStart = px(12) })
+            addView(sheetButton("Cancelar", primary = false) { dialog.dismiss() }, LinearLayout.LayoutParams(-2, -2).apply { marginStart = px(12) })
             post { restore.requestFocus() }
         }
-        dialog.setContentView(sheetPanel(R.drawable.ic_restore, "Restore from ${stamp.format(backup.created)}?",
-            "Your current settings, favourites, rows and profile pictures are replaced by the ones in this backup. Your Nuvio sign-in stays as it is.",
+        dialog.setContentView(sheetPanel(R.drawable.ic_restore, "¿Restaurar el respaldo del ${stamp.format(backup.created)}?",
+            "Tus ajustes, favoritos, filas y fotos de perfil se reemplazarán por los del respaldo. Tu sesión de Nuvio se conservará.",
             buttons))
         dialog.show()
     }
@@ -1252,10 +1252,10 @@ class SettingsActivity : Activity() {
     private fun ago(time: Long): String {
         val days = ((System.currentTimeMillis() - time) / 86_400_000L).toInt()
         return when {
-            days <= 0 -> "Today"
-            days == 1 -> "Yesterday"
-            days < 30 -> "$days days ago"
-            else -> "${days / 30} months ago"
+            days <= 0 -> "Hoy"
+            days == 1 -> "Ayer"
+            days < 30 -> "Hace $days días"
+            else -> "Hace ${days / 30} meses"
         }
     }
 
@@ -1264,7 +1264,7 @@ class SettingsActivity : Activity() {
     /** Asks for the weather's city; a blank answer goes back to locating the TV automatically. */
     /**
      * Picking the weather city: a search box with matching places listed under it as you
-     * type (name, region and country, so the right Vellore is clear), and "Automatic" at the
+     * type (name, region and country, so the right Vellore is clear), and "Automática" at the
      * top to go back to the internet connection's location. Sits at the top of the screen,
      * clear of the on-screen keyboard.
      */
@@ -1275,11 +1275,11 @@ class SettingsActivity : Activity() {
             background = GradientDrawable().apply { cornerRadius = 22 * dp; setColor(0xF2161A22.toInt()); setStroke(px(1), 0x1FFFFFFF) }
             setPadding(px(22), px(20), px(22), px(16))
         }
-        panel.addView(text("Weather city", 22f, bold = true))
-        panel.addView(text("Search for your town, then pick it from the list", 13f, alpha = 0.55f).apply { setPadding(0, px(4), 0, px(14)) })
+        panel.addView(text("Ciudad del clima", 22f, bold = true))
+        panel.addView(text("Busca tu ciudad y selecciónala en la lista", 13f, alpha = 0.55f).apply { setPadding(0, px(4), 0, px(14)) })
         val fieldBg = GradientDrawable().apply { cornerRadius = 14 * dp; setColor(0x14FFFFFF); setStroke(px(2), 0x26FFFFFF) }
         val input = EditText(this).apply {
-            hint = "Town or city"
+            hint = "Ciudad o localidad"
             setHintTextColor(0x66FFFFFF)
             setTextColor(Color.WHITE)
             textSize = 17f
@@ -1312,7 +1312,7 @@ class SettingsActivity : Activity() {
         fun done() { applyToHome(); refresh(animate = false) }
         fun show(places: List<Weather.Place>) {
             list.removeAllViews()
-            list.addView(choice("Automatic", "From your internet connection", R.drawable.ic_o_tv, current.isEmpty()) {
+            list.addView(choice("Automática", "Según tu conexión a internet", R.drawable.ic_o_tv, current.isEmpty()) {
                 FlixSettings.setWeatherCity(this, ""); done()
             })
             for (p in places) list.addView(choice(p.name, p.area, R.drawable.ic_o_pin, p.name == current) {
@@ -1326,12 +1326,12 @@ class SettingsActivity : Activity() {
             val q = input.text.toString().trim()
             if (q.length < 2) { status.text = ""; show(emptyList()); return@Runnable }
             val mine = ++asked
-            status.text = "Searching…"
+            status.text = "Buscando…"
             Thread {
                 val places = Weather.search(q)
                 runOnUiThread {
                     if (mine != asked || !dialog.isShowing) return@runOnUiThread
-                    status.text = if (places.isEmpty()) "No place called \"$q\". Check the spelling" else "Pick your town"
+                    status.text = if (places.isEmpty()) "No se encontró \"$q\". Revisa cómo se escribe" else "Elige tu ciudad"
                     show(places)
                 }
             }.start()
@@ -1362,7 +1362,7 @@ class SettingsActivity : Activity() {
         dialog.setOnShowListener { input.requestFocus() }
         // The rows were rebuilt while the panel was open, so the row that opened it is gone and
         // focus would fall to the search box: put it back on the new Weather city row.
-        dialog.setOnDismissListener { content.post { focusRowTitled("Weather city") } }
+        dialog.setOnDismissListener { content.post { focusRowTitled("Ciudad del clima") } }
         dialog.show()
     }
 
@@ -1383,12 +1383,12 @@ class SettingsActivity : Activity() {
     /** Lists hidden apps; picking one brings it back to the All apps row. */
     private fun showHiddenApps() {
         val hidden = repo.hidden.toList()
-        if (hidden.isEmpty()) return toast("No hidden apps")
+        if (hidden.isEmpty()) return toast("No hay apps ocultas")
         val labels = hidden.map { pkg ->
             runCatching { packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString() }.getOrDefault(pkg)
         }
         AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-            .setTitle("Tap an app to show it again")
+            .setTitle("Selecciona una app para volver a mostrarla")
             .setItems(labels.toTypedArray()) { _, which ->
                 repo.unhide(hidden[which])
                 applyToHome(appsOnly = true)
@@ -1439,11 +1439,11 @@ class SettingsActivity : Activity() {
         private const val RED = 0xFFE50914.toInt()
         private const val INK = 0xFF141414.toInt()
         private val SECTIONS = listOf(
-            Section("Home screen", "Where Home takes you, and how your apps look", R.drawable.ic_s_home),
-            Section("Movies & shows", "What's waiting for you to watch: rows, the Top 10 and trailers", R.drawable.ic_s_film),
-            Section("Clock & weather", "What the top of the screen shows", R.drawable.ic_o_clock),
-            Section("Wallpaper", "The picture behind everything, and the screensaver", R.drawable.ic_o_image),
-            Section("About", "Backup, Flix Launcher and this TV", R.drawable.ic_s_info),
+            Section("Inicio", "Configura el botón Inicio y el aspecto de tus apps", R.drawable.ic_s_home),
+            Section("Películas y series", "Contenido para ver: filas, los 10 más populares y tráileres", R.drawable.ic_s_film),
+            Section("Reloj y clima", "Información de la parte superior de la pantalla", R.drawable.ic_o_clock),
+            Section("Fondo de pantalla", "Imagen de fondo y protector de pantalla", R.drawable.ic_o_image),
+            Section("Acerca de", "Respaldo, Flix Latino y esta TV", R.drawable.ic_s_info),
         )
     }
 }

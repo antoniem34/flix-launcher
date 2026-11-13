@@ -61,14 +61,14 @@ class RowsActivity : Activity() {
         val side = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(px(54), px(6), px(16), px(28))
-            addView(text("Addons & rows", 28f, bold = true))
-            addView(text("Choose and order the rows on your home screen", 13f, alpha = 0.55f).apply { setPadding(0, px(4), 0, 0) })
-            addView(caption("Remote"))
+            addView(text("Complementos y filas", 28f, bold = true))
+            addView(text("Elige y ordena las filas de tu inicio", 13f, alpha = 0.55f).apply { setPadding(0, px(4), 0, 0) })
+            addView(caption("Control remoto"))
             addView(card().apply {
                 setPadding(px(14), px(10), px(14), px(10))
-                addView(keyHint("OK", "turns a row on or off"))
-                addView(keyHint("◀ ▶", "moves a row on the home screen"))
-                addView(keyHint("Menu", "more options"))
+                addView(keyHint("OK", "activa o desactiva una fila"))
+                addView(keyHint("◀ ▶", "mueve una fila en el inicio"))
+                addView(keyHint("Menú", "más opciones"))
             })
         }
         qr = ImageView(this).apply {
@@ -76,7 +76,7 @@ class RowsActivity : Activity() {
             setPadding(px(6), px(6), px(6), px(6))
         }
         qrCaption = text("", 12f, alpha = 0.6f)
-        side.addView(caption("Phone"))
+        side.addView(caption("Teléfono"))
         side.addView(card().apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -110,7 +110,7 @@ class RowsActivity : Activity() {
         root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(0xFF140A0C.toInt(), 0xFF0A0A0C.toInt(), 0xFF080809.toInt()))
-            addView(topBar("Addons & rows"), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, px(96)))
+            addView(topBar("Complementos y filas"), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, px(96)))
             addView(body, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
         }
         setContentView(root)
@@ -127,10 +127,10 @@ class RowsActivity : Activity() {
         if (address != null) {
             qr.setImageBitmap(qrBitmap(address, px(84)))
             qr.visibility = View.VISIBLE
-            qrCaption.text = "Scan to manage\nfrom your phone"
+            qrCaption.text = "Escanea y administra\ndesde tu teléfono"
         } else {
             qr.visibility = View.GONE
-            qrCaption.text = "Connect to Wi-Fi to use your phone"
+            qrCaption.text = "Conéctate al Wi-Fi para usar tu teléfono"
         }
     }
 
@@ -156,19 +156,19 @@ class RowsActivity : Activity() {
         list.removeAllViews()
         rowViews.clear()
         looks.clear()
-        val add = actionRow("Add an addon by URL", "Paste a Stremio-style manifest link", R.drawable.ic_o_plus) { askForUrl() }
-        list.addView(caption("Addons", top = 0))
+        val add = actionRow("Agregar complemento por URL", "Pega un enlace de manifiesto de Stremio", R.drawable.ic_o_plus) { askForUrl() }
+        list.addView(caption("Complementos", top = 0))
         list.addView(group(listOf(add)))
 
         val rows = Addons.rows(this)
         val on = rows.filter { it.enabled }
-        list.addView(caption("On your home screen · ${on.size}"))
-        if (on.isEmpty()) list.addView(text("Nothing yet — switch on a row below.", 13f, alpha = 0.55f).apply { setPadding(px(12), px(2), 0, px(4)) })
+        list.addView(caption("En tu inicio · ${on.size}"))
+        if (on.isEmpty()) list.addView(text("Aún no hay filas. Activa una de las siguientes.", 13f, alpha = 0.55f).apply { setPadding(px(12), px(2), 0, px(4)) })
         else list.addView(group(on.mapIndexed { i, row -> rowView(row, position = i + 1, count = on.size) }))
 
         val off = rows.filter { !it.enabled }.groupBy { it.manifest }
         if (off.isNotEmpty()) {
-            list.addView(caption("More from your addons"))
+            list.addView(caption("Más de tus complementos"))
             val items = mutableListOf<View>()
             for ((manifest, group) in off) {
                 val open = manifest in expanded
@@ -183,7 +183,7 @@ class RowsActivity : Activity() {
     }
 
     private fun rowView(row: Addons.Row, position: Int?, count: Int): View {
-        val kind = if (row.type == "series") "Series" else row.type.replaceFirstChar { it.uppercase() }
+        val kind = when (row.type) { "series" -> "Series"; "movie" -> "Películas"; else -> row.type }
         // Rows on the home screen show their place in the tile; the others show a row icon.
         val tileBg = GradientDrawable().apply { cornerRadius = 11 * dp; setColor(0x14FFFFFF) }
         val tile = FrameLayout(this).apply {
@@ -199,7 +199,7 @@ class RowsActivity : Activity() {
         return rowShell(tileBg).apply {
             tag = row.key
             addView(tile, LinearLayout.LayoutParams(px(38), px(38)).apply { marginEnd = px(16) })
-            addView(textBlock(row.title, "${row.addonName} · $kind"), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            addView(textBlock(row.displayTitle, "${row.addonName} · $kind"), LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             prev?.let { addView(it) }
             next?.let { addView(it) }
             addView(switch.view)
@@ -238,7 +238,7 @@ class RowsActivity : Activity() {
         return rowShell(bg).apply {
             tag = "addon:$manifest"
             addView(tile, LinearLayout.LayoutParams(px(38), px(38)).apply { marginEnd = px(16) })
-            addView(textBlock(name, if (open) "$count more rows · OK to fold" else "$count more rows", bold = true),
+            addView(textBlock(name, if (open) "$count filas más · OK para contraer" else "$count filas más", bold = true),
                 LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             addView(arrow)
             setOnFocusChangeListener { v, has ->
@@ -266,15 +266,15 @@ class RowsActivity : Activity() {
 
     private fun rowMenu(row: Addons.Row) {
         val actions = buildList<Pair<String, () -> Unit>> {
-            add((if (row.enabled) "Remove from home screen" else "Show on home screen") to { Addons.setEnabled(this@RowsActivity, row.key, !row.enabled) })
-            if (row.enabled) add("Move to top" to {
+            add((if (row.enabled) "Quitar del inicio" else "Mostrar en inicio") to { Addons.setEnabled(this@RowsActivity, row.key, !row.enabled) })
+            if (row.enabled) add("Mover al principio" to {
                 val rows = Addons.rows(this@RowsActivity)
                 repeat(rows.indexOfFirst { it.key == row.key }) { Addons.moveEnabled(this@RowsActivity, row.key, -1) }
             })
-            add("Delete row" to { Addons.rows(this@RowsActivity).indexOfFirst { it.key == row.key }.let { Addons.remove(this@RowsActivity, it) } })
+            add("Eliminar fila" to { Addons.rows(this@RowsActivity).indexOfFirst { it.key == row.key }.let { Addons.remove(this@RowsActivity, it) } })
         }
         AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-            .setTitle(row.title)
+            .setTitle(row.displayTitle)
             .setItems(actions.map { it.first }.toTypedArray()) { _, which -> actions[which].second(); changed(); render() }
             .show()
     }
@@ -282,7 +282,7 @@ class RowsActivity : Activity() {
     private fun addonMenu(manifest: String, name: String) {
         AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
             .setTitle(name)
-            .setItems(arrayOf("Remove this addon and all its rows")) { _, _ ->
+            .setItems(arrayOf("Quitar este complemento y todas sus filas")) { _, _ ->
                 Addons.removeAddon(this, manifest); changed(); render()
             }.show()
     }
@@ -294,22 +294,22 @@ class RowsActivity : Activity() {
             setSingleLine()
         }
         AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-            .setTitle("Addon manifest URL")
-            .setMessage("Tip: scanning the QR code lets you paste it from your phone.")
+            .setTitle("URL del manifiesto del complemento")
+            .setMessage("Escanea el código QR para pegarla desde tu teléfono.")
             .setView(input)
-            .setPositiveButton("Add") { _, _ -> addUrl(input.text.toString()) }
-            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Agregar") { _, _ -> addUrl(input.text.toString()) }
+            .setNegativeButton("Cancelar", null)
             .showWithKeyboard(input)
     }
 
     private fun addUrl(url: String) {
         if (url.isBlank()) return
-        Toast.makeText(this, "Reading addon…", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Leyendo complemento…", Toast.LENGTH_SHORT).show()
         thread {
             val result = runCatching { Addons.add(this, url) }
             runOnUiThread {
-                result.onSuccess { Toast.makeText(this, "Added $it rows", Toast.LENGTH_SHORT).show(); changed(); render() }
-                    .onFailure { Toast.makeText(this, it.message ?: "Couldn't add that addon", Toast.LENGTH_LONG).show() }
+                result.onSuccess { Toast.makeText(this, "Se agregaron $it filas", Toast.LENGTH_SHORT).show(); changed(); render() }
+                    .onFailure { Toast.makeText(this, it.message ?: "No se pudo agregar el complemento", Toast.LENGTH_LONG).show() }
             }
         }
     }
@@ -330,7 +330,7 @@ class RowsActivity : Activity() {
             })
             addView(View(context).apply { setBackgroundColor(0x33FFFFFF) },
                 LinearLayout.LayoutParams(px(1), px(22)).apply { marginStart = px(16); marginEnd = px(16) })
-            addView(text("Settings", 20f, alpha = 0.55f).apply { typeface = Typeface.create("sans-serif-light", Typeface.NORMAL) })
+            addView(text("Ajustes", 20f, alpha = 0.55f).apply { typeface = Typeface.create("sans-serif-light", Typeface.NORMAL) })
             addView(text("›", 20f, alpha = 0.4f).apply { setPadding(px(10), 0, px(10), 0) })
             addView(text(page, 20f, alpha = 0.9f).apply { typeface = Typeface.create("sans-serif-light", Typeface.NORMAL) })
         }
